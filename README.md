@@ -18,7 +18,9 @@ But try this
 ```
 sssnake -f -S -s 15
 ```
+
 or
+
 ``` 
 sssnake -S -s 15 -j 5
 ```
