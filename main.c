@@ -265,6 +265,15 @@ int get_direction(int c) {
 void draw_snake(Snake *snake) {
   SnakePart *sPart = snake->head;
   SnakePart *sPart2 = snake->tail;
+
+  if (tailLastPoint.x != sPart2->x || tailLastPoint.y != sPart2->y) {
+
+    if (tailLastPoint.x != -1 && tailLastPoint.y != -1)
+      draw_point(tailLastPoint.x, tailLastPoint.y, 0, 7);
+    tailLastPoint.x = sPart2->x;
+    tailLastPoint.y = sPart2->y;
+  }
+
   if (fancy) {
 
     if (sPart->next->x == sPart->x + 1 && sPart->next->y == sPart->y) {
@@ -316,13 +325,11 @@ void draw_snake(Snake *snake) {
         draw_point(sPart3->x, sPart3->y, 0, 2);
       } else if (sPart3->next->x == sPart3->x &&
                  sPart3->next->y == sPart3->y + 1) {
-
         draw_point(sPart3->x, sPart3->y, 0, 3);
       } else {
         draw_point(sPart3->x, sPart3->y, 0, 1);
       }
     }
-
   } else {
 
     draw_point(sPart->x, sPart->y, 0, 0);
@@ -342,13 +349,6 @@ void draw_snake(Snake *snake) {
                sPart2->prev->y == sPart2->y - 1) {
       draw_point(sPart2->x, sPart2->y, 0, 2);
     }
-  }
-  if (tailLastPoint.x != sPart2->x || tailLastPoint.y != sPart2->y) {
-
-    if (tailLastPoint.x != -1 && tailLastPoint.y != -1)
-      draw_point(tailLastPoint.x, tailLastPoint.y, 0, 7);
-    tailLastPoint.x = sPart2->x;
-    tailLastPoint.y = sPart2->y;
   }
 }
 void draw_food(int x, int y) {
