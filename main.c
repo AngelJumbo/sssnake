@@ -24,6 +24,7 @@ short wallColor = COLOR_RED;
 
 int autopilot = 0;
 int fancy = 0;
+int ascii = 0;
 int screensaver = 0;
 int speed = 200000;
 int junk = 0;
@@ -55,11 +56,15 @@ int main(int argc, char *argv[]) {
       {"fancy", 0, NULL, 'f'},
       {"junk", 0, NULL, 'j'},
       {"autopilot", 0, NULL, 'a'},
+      {"ascii", 0, NULL, 'A'},
       {NULL, 0, NULL, 0} /* Required at end of array.  */
   };
-  while ((op = getopt_long(argc, argv, ":aSfs:j:h", long_options, NULL)) !=
+  while ((op = getopt_long(argc, argv, ":aSfs:j:hA", long_options, NULL)) !=
          -1) {
     switch (op) {
+    case 'A':
+      ascii = 1;
+      break;
     case 'a':
       autopilot = 1;
       break;
@@ -227,6 +232,18 @@ void draw_point(int x, int y, short color, int type) {
   case 7:
     addstr("  ");
     break;
+  case 8:
+    addstr("()");
+    break;
+  case 9:
+    addstr("[]");
+    break;
+  case 10:
+    addstr("XX");
+    break;
+  case 11:
+    addstr("OO");
+    break;
   }
 
   attroff(COLOR_PAIR(color));
@@ -237,22 +254,30 @@ int get_direction(int c) {
   switch (c) {
   case KEY_UP:
   case 'k':
+  case 'K':
   case 'w':
+  case 'W':
     return North;
     break;
   case KEY_DOWN:
   case 'j':
+  case 'J':
   case 's':
+  case 'S':
     return South;
     break;
   case KEY_LEFT:
   case 'a':
+  case 'A':
   case 'h':
+  case 'H':
     return West;
     break;
   case KEY_RIGHT:
   case 'd':
+  case 'D':
   case 'l':
+  case 'L':
     return East;
     break;
   default:
@@ -274,7 +299,13 @@ void draw_snake(Snake *snake) {
     tailLastPoint.y = sPart2->y;
   }
 
-  if (fancy) {
+  if (ascii) {
+
+    draw_point(sPart->x, sPart->y, 0, 9);
+
+    draw_point(sPart->next->x, sPart->next->y, 0, 8);
+
+  } else if (fancy) {
 
     if (sPart->next->x == sPart->x + 1 && sPart->next->y == sPart->y) {
       draw_point(sPart->x, sPart->y, 0, 2);
@@ -352,7 +383,10 @@ void draw_snake(Snake *snake) {
   }
 }
 void draw_food(int x, int y) {
-  if (fancy) {
+  if (ascii) {
+
+    draw_point(x, y, 2, 11);
+  } else if (fancy) {
     draw_point(x, y, 2, 1);
   } else {
 
@@ -362,7 +396,12 @@ void draw_food(int x, int y) {
 void draw_junk(List *junkList) {
   for (Node *it = junkList->first; it != NULL; it = it->next) {
     Point *jpoint = (Point *)it->data;
-    if (fancy) {
+    if (ascii) {
+
+      draw_point(jpoint->x, jpoint->y, 3, 10);
+    } else
+
+        if (fancy) {
       draw_point(jpoint->x, jpoint->y, 3, 1);
     } else {
 
@@ -394,8 +433,11 @@ void print_help() {
 
   printf(
       "Usage: sssnake [OPTIONS]\n"
+      "Warning: if the characters are not displayed properly use the flag "
+      "\"-A\" to run in ascii mode until I fix it."
       "Options:\n"
       "  -a, --autopilot    The game plays itself. (Default: no)\n"
+      "  -A, --ascii        Use ascii characters. (Default: no)\n"
       "  -s, --speed=N      Speed of the game, from 1 to 20. (Default: 1 )\n"
       "  -S, --screensaver  Autopilot, but it restarts when it dies. (Default: "
       "no)\n"

@@ -27,6 +27,10 @@ sssnake -S -s 15 -j 5
 press Q to quit. 
 Use the -h options to see the option details.
 
+## If the characters are not displayed properly
+
+I'm working on fix in it, but for the moment you can use the -A flag to use ascii characters. 
+
 ## Contributing
 
 Any improvements are welcome especially in the pathfinding algorithm because now its a basic A\* implementation and sometimes the snake traps itselt.
@@ -34,4 +38,4 @@ Any improvements are welcome especially in the pathfinding algorithm because now
 ## Credits
 
 - Min heap implementation base on Martin Broadhurst min-heap ( http://www.martinbroadhurst.com/min-heap-in-c.html ) 
-- A\* base on (https://www.geeksforgeeks.org/a-search-algorithm/) 
+- A\* base on (https://www.geeksforgeeks.org/a-search-algorithm/)
