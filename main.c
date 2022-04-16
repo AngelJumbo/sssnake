@@ -183,10 +183,15 @@ int main(int argc, char *argv[]) {
         update_position(snake, blocksTaken, &food, direction, maxX, maxY);
       }
 
-      if (snake->colission || c == 'q')
+      if (snake->colission || c=='q')
         break;
+      if(screensaver && c!=ERR ){
+	c='q';
+	break;
+      }
       draw_snake(snake);
       draw_food(food.x, food.y);
+      c=0;
       refresh();
       usleep(speed);
     }
