@@ -183,15 +183,15 @@ int main(int argc, char *argv[]) {
         update_position(snake, blocksTaken, &food, direction, maxX, maxY);
       }
 
-      if (snake->colission || c=='q')
+      if (snake->colission || c == 'q')
         break;
-      if(screensaver && c!=ERR ){
-	c='q';
-	break;
+      if (screensaver && c != ERR) {
+        c = 'q';
+        break;
       }
       draw_snake(snake);
       draw_food(food.x, food.y);
-      c=0;
+      c = 0;
       refresh();
       usleep(speed);
     }
@@ -214,25 +214,25 @@ void draw_point(int x, int y, short color, int type) {
   attron(COLOR_PAIR(color));
   switch (type) {
   case 0:
-    addstr("██");
+    addwstr(L"██");
     break;
   case 1:
-    addstr("▀ ");
+    addwstr(L"▀ ");
     break;
   case 2:
-    addstr("▀▀");
+    addwstr(L"▀▀");
     break;
   case 3:
-    addstr("█ ");
+    addwstr(L"█ ");
     break;
   case 4:
-    addstr("█▀");
+    addwstr(L"█▀");
     break;
   case 5:
-    addstr("▄▄");
+    addwstr(L"▄▄");
     break;
   case 6:
-    addstr(" █");
+    addwstr(L" █");
     break;
   case 7:
     addstr("  ");
