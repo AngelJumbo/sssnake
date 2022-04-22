@@ -35,6 +35,7 @@ Stack *path = NULL;
 List *junkList = NULL;
 
 Point food;
+Point foodLastPoint;
 Point tailLastPoint;
 
 void init_game(void);
@@ -50,15 +51,10 @@ int main(int argc, char *argv[]) {
   int speedMult;
 
   const struct option long_options[] = {
-      {"help", 0, NULL, 'h'},
-      {"speed", 1, NULL, 's'},
-      {"screensaver", 0, NULL, 'S'},
-      {"fancy", 0, NULL, 'f'},
-      {"junk", 0, NULL, 'j'},
-      {"autopilot", 0, NULL, 'a'},
-      {"ascii", 0, NULL, 'A'},
-      {NULL, 0, NULL, 0} /* Required at end of array.  */
-  };
+      {"help", 0, NULL, 'h'},        {"speed", 1, NULL, 's'},
+      {"screensaver", 0, NULL, 'S'}, {"fancy", 0, NULL, 'f'},
+      {"junk", 0, NULL, 'j'},        {"autopilot", 0, NULL, 'a'},
+      {"ascii", 0, NULL, 'A'},       {NULL, 0, NULL, 0}};
   while ((op = getopt_long(argc, argv, ":aSfs:j:hA", long_options, NULL)) !=
          -1) {
     switch (op) {
@@ -109,8 +105,8 @@ int main(int argc, char *argv[]) {
     blocksTaken = xymap_create(maxX, maxY);
     snake = snake_create(maxX / 2, maxY / 2, direction);
     snake->grow = 1;
-    int foodX = -1;
-    int foodY = -1;
+    foodLastPoint.x = -1;
+    foodLastPoint.y = -1;
     tailLastPoint.x = -1;
     tailLastPoint.y = -1;
 
@@ -136,7 +132,8 @@ int main(int argc, char *argv[]) {
 
     rand_pos_food(&food, blocksTaken, maxX, maxY);
     while (1) {
-      if ((autopilot) && (foodX != food.x || foodY != food.y)) {
+      if ((autopilot) &&
+          (foodLastPoint.x != food.x || foodLastPoint.y != food.y)) {
         Point src;
         Point dest;
 
@@ -163,8 +160,8 @@ int main(int argc, char *argv[]) {
           if ((snake->head->y - (snake->head->next->y - 1)) == 0)
             direction = North;
         }
-        foodX = food.x;
-        foodY = food.y;
+        foodLastPoint.x = food.x;
+        foodLastPoint.y = food.y;
       }
 
       timeout(0);

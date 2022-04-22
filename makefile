@@ -1,9 +1,9 @@
 PREFIX = /usr/local
 
-sssnake: main.c autopilot.c xymap.c essentials.c snake.c 
-	gcc $(ncursesw5-config --cflags --libs) main.c autopilot.c xymap.c essentials.c snake.c -lncurses -o sssnake
-autopilot.o: autopilot.c xymap.c essentials.c snake.c 
-	gcc -c autopilot.c xymap.c essentials.c snake.c
+sssnake: main.c autopilot.o xymap.c essentials.c snake.c 
+	gcc -w $(ncursesw5-config --cflags --libs) main.c autopilot.c xymap.c essentials.c snake.c -lncurses -o sssnake
+#autopilot.o: autopilot.c xymap.c essentials.c snake.c 
+#	gcc -c autopilot.c xymap.c essentials.c snake.c
 
 .PHONY: clean
 clean:
