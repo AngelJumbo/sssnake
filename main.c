@@ -38,6 +38,7 @@ Point food;
 Point foodLastPoint;
 Point tailLastPoint;
 
+void init_options(int argc, char *argv[]);
 void init_game(void);
 void draw_snake(Snake *snake);
 void draw_food(int x, int y);
@@ -47,69 +48,41 @@ int get_direction(int c);
 void print_help();
 
 int main(int argc, char *argv[]) {
-  int op;
-  int speedMult;
 
-  const struct option long_options[] = {
-      {"help", 0, NULL, 'h'},        {"speed", 1, NULL, 's'},
-      {"screensaver", 0, NULL, 'S'}, {"fancy", 0, NULL, 'f'},
-      {"junk", 0, NULL, 'j'},        {"autopilot", 0, NULL, 'a'},
-      {"ascii", 0, NULL, 'A'},       {NULL, 0, NULL, 0}};
-  while ((op = getopt_long(argc, argv, ":aSfs:j:hA", long_options, NULL)) !=
-         -1) {
-    switch (op) {
-    case 'A':
-      ascii = 1;
-      break;
-    case 'a':
-      autopilot = 1;
-      break;
-    case 'S':
-      autopilot = 1;
-      screensaver = 1;
-      break;
-    case 'f':
-      fancy = 1;
-      break;
-    case 'j':
-      junk = atoi(optarg);
-      if (junk <= 0 || junk > 5)
-        junk = 0;
-      break;
-    case 's':
-      speedMult = 21 - atoi(optarg);
-      if (speedMult > 0 && speedMult <= 20) {
-        speed = 10000 * speedMult;
-      }
-      break;
-    case 'h':
-      print_help();
-      return 0;
-    case ':':
-      printf("option needs a value\n");
-      return 0;
-    case '?':
-      printf("unknown option: %c\n", optopt);
-      return 0;
-    }
-  }
-
+  init_options(argc, argv);
   init_game();
 
   curs_set(0);
+
+  // The width of the game board is half of the columns because I use two
+  // characters to represent one point ("██" or "▀ ")
   maxX = cols / 2;
   maxY = rows;
 
-  do {
+  do { // This loop goes forever if the option "screensaver" is given.
 
+    // Used to know where the body of the snake and junk are,
+    // blocksTaken is just a matrix of 2x2 but It can change its dimesions
+    // dinamically if I ever decide to change  them by detecting changes in the
+    // dimensions of the terminal.
     blocksTaken = xymap_create(maxX, maxY);
     snake = snake_create(maxX / 2, maxY / 2, direction);
+    // A snake with a size of just one cell may break somethings
+    // so just grow it by one at the start.
     snake->grow = 1;
+
+    // Used to know when a new path is needed in autopilot and screensaver mode
+    // If the food does not change position then just follow the actual path.
     foodLastPoint.x = -1;
     foodLastPoint.y = -1;
+    // Used to know what block should be erased from the screen when the snake
+    // moves because the program does not redraws everything in every game loop
+    // it just draws a new point for the head and deletes the last point of the
+    // tail.
     tailLastPoint.x = -1;
     tailLastPoint.y = -1;
 
+    // Self explainatory block (I hope)
     if (junk) {
       junkList = list_create();
       int maxJunk = (maxX * maxY) * junk / 100;
@@ -131,26 +104,29 @@ int main(int argc, char *argv[]) {
     }
 
     rand_pos_food(&food, blocksTaken, maxX, maxY);
+
+    // The game loop
     while (1) {
+      // Get a new path to follow if the autopilot or the screensaver are active
       if ((autopilot) &&
           (foodLastPoint.x != food.x || foodLastPoint.y != food.y)) {
         Point src;
-        Point dest;
-
+        // TODO: the source point is the head of the snake, this parameter is
+        // redundant.
         src.x = snake->head->x;
         src.y = snake->head->y;
-        dest.x = food.x;
-        dest.y = food.y;
         if (path != NULL) {
           stack_free(path);
         }
 
-        path = a_star_search(blocksTaken, snake, maxX, maxY, src, dest);
+        path = a_star_search(blocksTaken, snake, maxX, maxY, src, food);
         if (path != NULL) {
 
           free(stack_pop(path));
 
         } else if (snake->length > 1) {
+          // if there is no path found then mark the direction to which the
+          // snake was headed and can follow it to die
           if ((snake->head->x - (snake->head->next->x + 1)) == 0)
             direction = East;
           if ((snake->head->x - (snake->head->next->x - 1)) == 0)
@@ -166,7 +142,7 @@ int main(int argc, char *argv[]) {
 
       timeout(0);
       c = getch();
-      move(rows, cols);
+      // move(rows, cols);
 
       if (path != NULL) {
 
@@ -175,6 +151,8 @@ int main(int argc, char *argv[]) {
                                   maxX, maxY);
         free(point);
       } else {
+        // If the autopilot is on and there is no path to follow then let the
+        // snake die.
         if (!autopilot)
           direction = get_direction(c);
         update_position(snake, blocksTaken, &food, direction, maxX, maxY);
@@ -431,6 +409,57 @@ void init_game(void) {
   init_pair(2, foodColor, -1);
   init_pair(3, wallColor, -1);
 }
+
+void init_options(int argc, char *argv[]) {
+  int op;
+  int speedMult;
+
+  const struct option long_options[] = {
+      {"help", 0, NULL, 'h'},        {"speed", 1, NULL, 's'},
+      {"screensaver", 0, NULL, 'S'}, {"fancy", 0, NULL, 'f'},
+      {"junk", 0, NULL, 'j'},        {"autopilot", 0, NULL, 'a'},
+      {"ascii", 0, NULL, 'A'},       {NULL, 0, NULL, 0}};
+  while ((op = getopt_long(argc, argv, ":aSfs:j:hA", long_options, NULL)) !=
+         -1) {
+    switch (op) {
+    case 'A':
+      ascii = 1;
+      break;
+    case 'a':
+      autopilot = 1;
+      break;
+    case 'S':
+      // When this option is given the autopilot flag is true too
+      autopilot = 1;
+      screensaver = 1;
+      break;
+    case 'f':
+      fancy = 1;
+      break;
+    case 'j':
+      junk = atoi(optarg);
+      if (junk <= 0 || junk > 5)
+        junk = 0;
+      break;
+    case 's':
+      speedMult = 21 - atoi(optarg);
+      if (speedMult > 0 && speedMult <= 20) {
+        speed = 10000 * speedMult;
+      }
+      break;
+    case 'h':
+      print_help();
+      exit(0);
+    case ':':
+      printf("option needs a value\n");
+      exit(0);
+    case '?':
+      printf("unknown option: %c\n", optopt);
+      exit(0);
+    }
+  }
+}
+
 void print_help() {
 
   printf(
