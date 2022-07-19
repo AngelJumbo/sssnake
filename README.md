@@ -27,9 +27,9 @@ sssnake -S -s 15 -j 5
 press Q to quit. 
 Use the -h options to see the option details.
 
-## If the characters are not displayed properly
+## Known bugs
 
-I'm working on fix in it, but for the moment you can use the -A flag to use ascii characters. 
+  - Sometimes the food spawns in the snake body. 
 
 ## Contributing
 

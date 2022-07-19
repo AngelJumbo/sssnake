@@ -45,7 +45,7 @@ static void move_body(Snake *snake, XYMap *blocksTaken, Point *food, int prevx,
   int prevx2, prevy2;
 
   xymap_mark(blocksTaken, snake->head->x, snake->head->y, SBODY);
-  xymap_unmark(blocksTaken, snake->tail->x, snake->tail->y);
+  // xymap_unmark(blocksTaken, snake->tail->x, snake->tail->y);
 
   SnakePart *snakePart = snake->head->next;
   while (snakePart != NULL) {
@@ -60,7 +60,7 @@ static void move_body(Snake *snake, XYMap *blocksTaken, Point *food, int prevx,
     snakePart = snakePart->next;
   }
   if (food->x == snake->head->x && food->y == snake->head->y) {
-    rand_pos_food(food, blocksTaken, maxX, maxY);
+    // rand_pos_food(food, blocksTaken, maxX, maxY);
     snake->grow++;
     snake->colission = 0;
   }
@@ -71,9 +71,10 @@ static void move_body(Snake *snake, XYMap *blocksTaken, Point *food, int prevx,
     snake->tail->next = snake_part_create(prevx, prevy, snake->tail);
 
     snake->tail = snake->tail->next;
-    xymap_mark(blocksTaken, snake->tail->x, snake->tail->y, SBODY);
-    // } else {
-    //   xymap_unmark(blocksTaken, prevx, prevy);
+    // xymap_mark(blocksTaken, snake->tail->x, snake->tail->y, SBODY);
+    // rand_pos_food(food, blocksTaken, maxX, maxY);
+  } else {
+    xymap_unmark(blocksTaken, prevx, prevy);
   }
 }
 

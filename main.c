@@ -158,6 +158,9 @@ int main(int argc, char *argv[]) {
         update_position(snake, blocksTaken, &food, direction, maxX, maxY);
       }
 
+      if (snake->head->x == food.x && snake->head->y == food.y)
+        rand_pos_food(&food, blocksTaken, maxX, maxY);
+
       if (snake->colission || c == 'q')
         break;
       if (screensaver && c != ERR) {
