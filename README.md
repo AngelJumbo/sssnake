@@ -3,12 +3,13 @@ The classic snake game for the terminal that can plays itself and be use like a 
 [![asciicast](https://asciinema.org/a/477685.svg)](https://asciinema.org/a/477685)
 ## Installation
 
-(RN its only for linux) 
 
 ```
 make
 make install
 ```
+
+ncurses is required.
 
 ## Usage
 
@@ -26,10 +27,7 @@ sssnake -S -s 15 -j 5
 ```
 press Q to quit. 
 Use the -h options to see the option details.
-
-## Known bugs
-
-  - Sometimes the food spawns in the snake body. 
+ 
 
 ## Contributing
 

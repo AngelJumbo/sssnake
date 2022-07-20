@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
 
   do { // This loop goes forever if the option "screensaver" is given.
 
-    // Used to know where the body of the snake and junk are,
+    // Used to know where the body of the snake and the junk are,
     // blocksTaken is just a matrix of 2x2 but It can change its dimesions
     // dinamically if I ever decide to change  them by detecting changes in the
     // dimensions of the terminal.
@@ -157,6 +157,14 @@ int main(int argc, char *argv[]) {
           direction = get_direction(c);
         update_position(snake, blocksTaken, &food, direction, maxX, maxY);
       }
+      // xymap_print_log(blocksTaken, snake->head->x, snake->head->y,
+      //                snake->tail->x, snake->tail->y);
+
+      // FILE *fp;
+      // fp = fopen("log.txt", "a+");
+
+      // fprintf(fp, "Food (%i,%i) \n", food.x, food.y);
+      // fclose(fp);
 
       if (snake->head->x == food.x && snake->head->y == food.y)
         rand_pos_food(&food, blocksTaken, maxX, maxY);

@@ -22,5 +22,6 @@ void xymap_unmark(XYMap *map, int x, int y);
 int xymap_marked(XYMap *map, int x, int y);
 void xymap_print(XYMap *map);
 
+void xymap_print_log(XYMap *map, int headx, int heady, int tailx, int taily);
 XYMap *xymap_copy(XYMap *map);
 #endif

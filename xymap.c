@@ -51,3 +51,39 @@ void xymap_print(XYMap *map) {
     printf("\n");
   }
 }
+
+void xymap_print_log(XYMap *map, int headx, int heady, int tailx, int taily) {
+  FILE *fp;
+
+  fp = fopen("log.txt", "a+");
+  fprintf(fp, "   ");
+  for (int i = 0; i < map->maxX; i++)
+    fprintf(fp, "%i ", i);
+
+  fprintf(fp, "\n");
+  for (int i = 0; i < map->maxX; i++)
+    fprintf(fp, "--");
+  fprintf(fp, "\n");
+  for (int j = 0; j < map->maxY; j++) {
+
+    fprintf(fp, "%i| ", j);
+    for (int i = 0; i < map->maxX; i++) {
+      if (map->arr[i + map->maxX * j] != 0) {
+        if (i == headx && j == heady) {
+          fprintf(fp, "h ");
+        } else if (i == tailx && j == taily) {
+          fprintf(fp, "t ");
+        } else {
+          fprintf(fp, "O ");
+        }
+      } else {
+        fprintf(fp, "  ");
+      }
+      // fprintf(fp, "%i ", map->arr[i + map->maxX * j]);
+    }
+    fprintf(fp, "\n");
+  }
+
+  fprintf(fp, "\n");
+  fclose(fp);
+}

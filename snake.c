@@ -44,7 +44,6 @@ static void move_body(Snake *snake, XYMap *blocksTaken, Point *food, int prevx,
                       int prevy, int maxX, int maxY) {
   int prevx2, prevy2;
 
-  xymap_mark(blocksTaken, snake->head->x, snake->head->y, SBODY);
   // xymap_unmark(blocksTaken, snake->tail->x, snake->tail->y);
 
   SnakePart *snakePart = snake->head->next;
@@ -74,8 +73,10 @@ static void move_body(Snake *snake, XYMap *blocksTaken, Point *food, int prevx,
     // xymap_mark(blocksTaken, snake->tail->x, snake->tail->y, SBODY);
     // rand_pos_food(food, blocksTaken, maxX, maxY);
   } else {
+    // only unmark if the head haven't take the place of the tail
     xymap_unmark(blocksTaken, prevx, prevy);
   }
+  xymap_mark(blocksTaken, snake->head->x, snake->head->y, SBODY);
 }
 
 void update_position(Snake *snake, XYMap *blocksTaken, Point *food, int dir,
