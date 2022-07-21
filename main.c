@@ -157,8 +157,10 @@ int main(int argc, char *argv[]) {
           direction = get_direction(c);
         update_position(snake, blocksTaken, &food, direction, maxX, maxY);
       }
+
+      // ignore this, is just a debug block
       // xymap_print_log(blocksTaken, snake->head->x, snake->head->y,
-      //                snake->tail->x, snake->tail->y);
+      //                 snake->tail->x, snake->tail->y);
 
       // FILE *fp;
       // fp = fopen("log.txt", "a+");
@@ -194,6 +196,38 @@ int main(int argc, char *argv[]) {
   } while (screensaver);
   endwin();
 }
+
+/*
+  All the snake games in the terminal that I found use ascii characters
+  and lets be honest, they are kinda ugly.
+
+  So I play around using unicode blocks:
+
+  To get the spacing in the fancy mode we use this two unicode characters
+  ▀ and █.
+  A point/SnakePart is represented in two characters.
+  We have to fill the gaps to connect the body parts
+  You may understand it better like this:
+
+  length    | not gap filled  | gap filled
+  ----------|-----------------|-----------
+  1         | ▀               | ▀
+  2         | ▀ ▀             | ▀▀▀
+  3         | ▀ ▀ ▀           | ▀▀▀▀▀
+
+  so from this two characters ▀ and █ we have this extra combination to fill the
+  gaps in the snake body ▀▀ and █▀
+
+  And like this we can have a really cool snake.
+
+  ▀▀▀▀█
+  █▀▀▀▀ █
+  ▀▀▀▀▀▀▀
+  This is the "sexy" part in the name sssnake!!!.
+
+  The other cases 5 and 6 below were intended to build walls but for now are
+  unused.
+*/
 
 void draw_point(int x, int y, short color, int type) {
   move(y, 2 * x);
@@ -238,7 +272,7 @@ void draw_point(int x, int y, short color, int type) {
   }
 
   attroff(COLOR_PAIR(color));
-  move(rows, cols);
+  // move(rows, cols);
 }
 
 int get_direction(int c) {
@@ -278,10 +312,14 @@ int get_direction(int c) {
   return -1;
 }
 
+// this funtion only draws the head and deletes the tail
+// the rest of the body is not redraw unless the fancy or ascii mode are active
+// in that case the head and the second section of the body are draw
 void draw_snake(Snake *snake) {
   SnakePart *sPart = snake->head;
   SnakePart *sPart2 = snake->tail;
 
+  // deletes last point where the tail was
   if (tailLastPoint.x != sPart2->x || tailLastPoint.y != sPart2->y) {
 
     if (tailLastPoint.x != -1 && tailLastPoint.y != -1)
@@ -291,13 +329,13 @@ void draw_snake(Snake *snake) {
   }
 
   if (ascii) {
-
+    // draw the head
     draw_point(sPart->x, sPart->y, 0, 9);
-
+    // draw the second section of the body
     draw_point(sPart->next->x, sPart->next->y, 0, 8);
 
   } else if (fancy) {
-
+    // draw the head
     if (sPart->next->x == sPart->x + 1 && sPart->next->y == sPart->y) {
       draw_point(sPart->x, sPart->y, 0, 2);
     } else if (sPart->next->x == sPart->x - 1 && sPart->next->y == sPart->y) {
@@ -309,7 +347,7 @@ void draw_snake(Snake *snake) {
 
       draw_point(sPart->x, sPart->y, 0, 1);
     }
-
+    // draw the second section of the body
     if (sPart2->prev->x == sPart2->x + 1 && sPart2->prev->y == sPart2->y) {
       draw_point(sPart2->x, sPart2->y, 0, 2);
     } else if (sPart2->prev->x == sPart2->x - 1 &&
@@ -322,7 +360,6 @@ void draw_snake(Snake *snake) {
                sPart2->prev->y == sPart2->y - 1) {
       draw_point(sPart2->x, sPart2->y, 0, 1);
     }
-
     if (snake->length > 2) {
       SnakePart *sPart3 = sPart->next;
       if (sPart3->prev->x == sPart3->x + 1 && sPart3->prev->y == sPart3->y &&
@@ -352,8 +389,9 @@ void draw_snake(Snake *snake) {
         draw_point(sPart3->x, sPart3->y, 0, 1);
       }
     }
-  } else {
 
+  } else {
+    // Draw the head
     draw_point(sPart->x, sPart->y, 0, 0);
     // The tail is drawn like a half block to avoid the Ouroboros.
     // Then, why not give the head another color?
@@ -475,8 +513,6 @@ void print_help() {
 
   printf(
       "Usage: sssnake [OPTIONS]\n"
-      "Warning: if the characters are not displayed properly use the flag "
-      "\"-A\" to run in ascii mode until I fix it."
       "Options:\n"
       "  -a, --autopilot    The game plays itself. (Default: no)\n"
       "  -A, --ascii        Use ascii characters. (Default: no)\n"
@@ -486,5 +522,6 @@ void print_help() {
       "  -j, --junk=N       Add random blocks of junk, levels from 1 to 5. "
       "(Default: 0 )\n"
       "  -f, --fancy        Add a fancy spacing between blocks. (Default: no)\n"
-      "  -h, --help         Print help message. \n");
+      "  -h, --help         Print help message. \n"
+      "For bugs or new features go to : https://github.com/AngelJumbo/sssnake");
 }
