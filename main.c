@@ -224,16 +224,16 @@ void draw_point(int x, int y, short color, int type) {
     addstr("  ");
     break;
   case 8:
-    addstr("()");
+    addstr("o ");
     break;
   case 9:
-    addstr("[]");
+    addstr("@ ");
     break;
   case 10:
-    addstr("XX");
+    addstr("x ");
     break;
   case 11:
-    addstr("OO");
+    addstr("8 ");
     break;
   }
 
