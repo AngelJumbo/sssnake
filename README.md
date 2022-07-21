@@ -9,7 +9,8 @@ make
 make install
 ```
 
-ncurses is required.
+ncursesw is required.
+(depending of the distro this might be included in the standard ncurses library)
 
 ## Usage
 
