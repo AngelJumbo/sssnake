@@ -468,6 +468,14 @@ void init_options(int argc, char *argv[]) {
       {"screensaver", 0, NULL, 'S'}, {"fancy", 0, NULL, 'f'},
       {"junk", 0, NULL, 'j'},        {"autopilot", 0, NULL, 'a'},
       {"ascii", 0, NULL, 'A'},       {NULL, 0, NULL, 0}};
+
+  if (argc == 1) {
+    printf("You ran this program with no extra options,\n"
+           "maybe it was intentional but you might have \n"
+           "more fun trying the available options, run:\n"
+           "sssnake -h\n ");
+  }
+
   while ((op = getopt_long(argc, argv, ":aSfs:j:hA", long_options, NULL)) !=
          -1) {
     switch (op) {
@@ -523,5 +531,12 @@ void print_help() {
       "(Default: 0 )\n"
       "  -f, --fancy        Add a fancy spacing between blocks. (Default: no)\n"
       "  -h, --help         Print help message. \n"
-      "For bugs or new features go to : https://github.com/AngelJumbo/sssnake");
+      "Try to run something like this :\n"
+      "sssnake -s 15 -f -j 5 -S\n"
+      "Warning!!! be careful using the screensaver and junk options "
+      "at the same time on OLED screens.\nIf the snake is to much time alive "
+      "the static dots of junk may burn your screen.\n"
+      "Using the screensaver option alone should be fine.\n"
+      "For bugs or new features go to : "
+      "https://github.com/AngelJumbo/sssnake\n");
 }
