@@ -21,6 +21,7 @@ int c = East;
 short foodColor = COLOR_GREEN;
 short snakeColor = -1;
 short wallColor = COLOR_RED;
+clock_t initTime;
 
 int autopilot = 0;
 int fancy = 0;
@@ -28,6 +29,7 @@ int ascii = 0;
 int screensaver = 0;
 int speed = 200000;
 int junk = 0;
+int score = 0;
 
 XYMap *blocksTaken = NULL;
 Snake *snake = NULL;
@@ -44,6 +46,8 @@ void draw_snake(Snake *snake);
 void draw_food(int x, int y);
 void draw_junk(List *junkList);
 void draw_point(int x, int y, short color, int type);
+void draw_score(Snake *snake);
+int get_time(); // usleep() makes this fuction useless
 int get_direction(int c);
 void print_help();
 
@@ -57,7 +61,7 @@ int main(int argc, char *argv[]) {
   // The width of the game board is half of the columns because I use two
   // characters to represent one point ("██" or "▀ ")
   maxX = cols / 2;
-  maxY = rows;
+  maxY = rows - score;
 
   do { // This loop goes forever if the option "screensaver" is given.
 
@@ -179,6 +183,8 @@ int main(int argc, char *argv[]) {
       }
       draw_snake(snake);
       draw_food(food.x, food.y);
+      if (score)
+        draw_score(snake);
       c = 0;
       refresh();
       usleep(speed);
@@ -457,17 +463,22 @@ void init_game(void) {
   init_pair(1, snakeColor, -1);
   init_pair(2, foodColor, -1);
   init_pair(3, wallColor, -1);
+  initTime = clock();
 }
 
 void init_options(int argc, char *argv[]) {
   int op;
   int speedMult;
 
-  const struct option long_options[] = {
-      {"help", 0, NULL, 'h'},        {"speed", 1, NULL, 's'},
-      {"screensaver", 0, NULL, 'S'}, {"fancy", 0, NULL, 'f'},
-      {"junk", 0, NULL, 'j'},        {"autopilot", 0, NULL, 'a'},
-      {"ascii", 0, NULL, 'A'},       {NULL, 0, NULL, 0}};
+  const struct option long_options[] = {{"help", 0, NULL, 'h'},
+                                        {"speed", 1, NULL, 's'},
+                                        {"screensaver", 0, NULL, 'S'},
+                                        {"fancy", 0, NULL, 'f'},
+                                        {"junk", 1, NULL, 'j'},
+                                        {"autopilot", 0, NULL, 'a'},
+                                        {"ascii", 0, NULL, 'A'},
+                                        {"score", 0, NULL, 'z'},
+                                        {NULL, 0, NULL, 0}};
 
   if (argc == 1) {
     printf("You ran this program with no extra options,\n"
@@ -476,7 +487,7 @@ void init_options(int argc, char *argv[]) {
            "sssnake -h\n ");
   }
 
-  while ((op = getopt_long(argc, argv, ":aSfs:j:hA", long_options, NULL)) !=
+  while ((op = getopt_long(argc, argv, ":aSfs:j:hAz", long_options, NULL)) !=
          -1) {
     switch (op) {
     case 'A':
@@ -504,6 +515,9 @@ void init_options(int argc, char *argv[]) {
         speed = 10000 * speedMult;
       }
       break;
+    case 'z':
+      score = 1;
+      break;
     case 'h':
       print_help();
       exit(0);
@@ -515,6 +529,16 @@ void init_options(int argc, char *argv[]) {
       exit(0);
     }
   }
+}
+
+int get_time() {
+  clock_t difference = clock() - initTime;
+  return difference * 1000 / CLOCKS_PER_SEC;
+}
+
+void draw_score(Snake *snake) {
+  move(maxY, 0);
+  printw("Size %i (%i,%i) ", snake->length, maxX, maxY);
 }
 
 void print_help() {
