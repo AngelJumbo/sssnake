@@ -14,14 +14,22 @@
 #include "snake.h"
 #include "xymap.h"
 
+enum styles { FANCY, FULL, ASCII };
+enum modes { NORMAL, ARCADE, AUTOPILOT, SCREENSAVER };
+
 int direction = East;
 int cols, rows;
 int maxX, maxY;
+int minX = 0;
+int minY = 0;
 int c = East;
 short foodColor = COLOR_GREEN;
 short snakeColor = -1;
 short wallColor = COLOR_RED;
 clock_t initTime;
+
+int selectedStyle = FANCY;
+int selectedMode = NORMAL;
 
 int autopilot = 0;
 int fancy = 0;
@@ -30,6 +38,7 @@ int screensaver = 0;
 int speed = 200000;
 int junk = 0;
 int score = 0;
+int arcade = 0;
 
 XYMap *blocksTaken = NULL;
 Snake *snake = NULL;
@@ -39,14 +48,18 @@ List *junkList = NULL;
 Point food;
 Point foodLastPoint;
 Point tailLastPoint;
+int snakeSize = 0;
 
 void init_options(int argc, char *argv[]);
 void init_game(void);
+void init_score();
 void draw_snake(Snake *snake);
 void draw_food(int x, int y);
 void draw_junk(List *junkList);
 void draw_point(int x, int y, short color, int type);
 void draw_score(Snake *snake);
+void draw_walls();
+
 int get_time(); // usleep() makes this fuction useless
 int get_direction(int c);
 void print_help();
@@ -63,8 +76,19 @@ int main(int argc, char *argv[]) {
   maxX = cols / 2;
   maxY = rows - score;
 
+  if (selectedMode == ARCADE) {
+    minX = (cols - 60) / 2;
+    minY = (rows - 20) / 2;
+    maxX = 30;
+    maxY = 20;
+    draw_walls();
+    score = 1;
+  }
+
   do { // This loop goes forever if the option "screensaver" is given.
 
+    if (score)
+      init_score();
     // Used to know where the body of the snake and the junk are,
     // blocksTaken is just a matrix of 2x2 but It can change its dimesions
     // dinamically if I ever decide to change  them by detecting changes in the
@@ -112,7 +136,7 @@ int main(int argc, char *argv[]) {
     // The game loop
     while (1) {
       // Get a new path to follow if the autopilot or the screensaver are active
-      if ((autopilot) &&
+      if ((selectedMode == AUTOPILOT || selectedMode == SCREENSAVER) &&
           (foodLastPoint.x != food.x || foodLastPoint.y != food.y)) {
         Point src;
         // TODO: the source point is the head of the snake, this parameter is
@@ -157,7 +181,7 @@ int main(int argc, char *argv[]) {
       } else {
         // If the autopilot is on and there is no path to follow then let the
         // snake die.
-        if (!autopilot)
+        if (!(selectedMode == AUTOPILOT || selectedMode == SCREENSAVER))
           direction = get_direction(c);
         update_position(snake, blocksTaken, &food, direction, maxX, maxY);
       }
@@ -177,7 +201,7 @@ int main(int argc, char *argv[]) {
 
       if (snake->colission || c == 'q')
         break;
-      if (screensaver && c != ERR) {
+      if (selectedMode == SCREENSAVER && c != ERR) {
         c = 'q';
         break;
       }
@@ -199,7 +223,7 @@ int main(int argc, char *argv[]) {
 
     if (c == 'q')
       break;
-  } while (screensaver);
+  } while (selectedMode == SCREENSAVER);
   endwin();
 }
 
@@ -231,12 +255,12 @@ int main(int argc, char *argv[]) {
   ▀▀▀▀▀▀▀
   This is the "sexy" part in the name sssnake!!!.
 
-  The other cases 5 and 6 below were intended to build walls but for now are
+  The cases 5 and 6 below were intended to build walls but for now are
   unused.
 */
 
 void draw_point(int x, int y, short color, int type) {
-  move(y, 2 * x);
+  move(y + minY, 2 * x + minX);
   attron(COLOR_PAIR(color));
   switch (type) {
   case 0:
@@ -334,13 +358,14 @@ void draw_snake(Snake *snake) {
     tailLastPoint.y = sPart2->y;
   }
 
-  if (ascii) {
+  switch (selectedStyle) {
+  case ASCII:
     // draw the head
     draw_point(sPart->x, sPart->y, 0, 9);
     // draw the second section of the body
     draw_point(sPart->next->x, sPart->next->y, 0, 8);
-
-  } else if (fancy) {
+    break;
+  case FANCY:
     // draw the head
     if (sPart->next->x == sPart->x + 1 && sPart->next->y == sPart->y) {
       draw_point(sPart->x, sPart->y, 0, 2);
@@ -395,8 +420,8 @@ void draw_snake(Snake *snake) {
         draw_point(sPart3->x, sPart3->y, 0, 1);
       }
     }
-
-  } else {
+    break;
+  case FULL:
     // Draw the head
     draw_point(sPart->x, sPart->y, 0, 0);
     // The tail is drawn like a half block to avoid the Ouroboros.
@@ -415,32 +440,37 @@ void draw_snake(Snake *snake) {
                sPart2->prev->y == sPart2->y - 1) {
       draw_point(sPart2->x, sPart2->y, 0, 2);
     }
+    break;
   }
 }
 void draw_food(int x, int y) {
-  if (ascii) {
-
+  switch (selectedStyle) {
+  case ASCII:
     draw_point(x, y, 2, 11);
-  } else if (fancy) {
+    break;
+  case FANCY:
     draw_point(x, y, 2, 1);
-  } else {
-
+    break;
+  case FULL:
     draw_point(x, y, 2, 0);
+    break;
   }
 }
 void draw_junk(List *junkList) {
   for (Node *it = junkList->first; it != NULL; it = it->next) {
     Point *jpoint = (Point *)it->data;
-    if (ascii) {
+    switch (selectedStyle) {
 
+    case ASCII:
       draw_point(jpoint->x, jpoint->y, 3, 10);
-    } else
-
-        if (fancy) {
+      break;
+    case FANCY:
       draw_point(jpoint->x, jpoint->y, 3, 1);
-    } else {
+      break;
+    case FULL:
 
       draw_point(jpoint->x, jpoint->y, 3, 0);
+      break;
     }
   }
 }
@@ -463,7 +493,20 @@ void init_game(void) {
   init_pair(1, snakeColor, -1);
   init_pair(2, foodColor, -1);
   init_pair(3, wallColor, -1);
-  initTime = clock();
+  init_pair(4, COLOR_BLACK, 15);
+}
+
+void init_score() {
+
+  move(minY + maxY, minX);
+
+  attron(COLOR_PAIR(4));
+  for (int i = 0; i < maxX; i++)
+    printw("  ");
+
+  attroff(COLOR_PAIR(4));
+
+  // initTime = clock();
 }
 
 void init_options(int argc, char *argv[]) {
@@ -478,6 +521,8 @@ void init_options(int argc, char *argv[]) {
                                         {"autopilot", 0, NULL, 'a'},
                                         {"ascii", 0, NULL, 'A'},
                                         {"score", 0, NULL, 'z'},
+                                        {"look", 1, NULL, 'l'},
+                                        {"mode", 1, NULL, 'm'},
                                         {NULL, 0, NULL, 0}};
 
   if (argc == 1) {
@@ -487,23 +532,51 @@ void init_options(int argc, char *argv[]) {
            "sssnake -h\n ");
   }
 
-  while ((op = getopt_long(argc, argv, ":aSfs:j:hAz", long_options, NULL)) !=
-         -1) {
+  while ((op = getopt_long(argc, argv, ":aSfs:j:hAzl:m:", long_options,
+                           NULL)) != -1) {
     switch (op) {
     case 'A':
-      ascii = 1;
+      selectedStyle = ASCII;
+      printf("The -A / --ascii flag will be depricated at some point \n"
+             "Use \"-l ascii\" instead \n");
+      // ascii = 1;
       break;
     case 'a':
-      autopilot = 1;
+      selectedMode = AUTOPILOT;
+      printf("The -a / --autopilot flag will be depricated at some point \n"
+             "Use \"-m autopilot\" instead \n");
       break;
     case 'S':
-      // When this option is given the autopilot flag is true too
-      autopilot = 1;
-      screensaver = 1;
+      selectedMode = SCREENSAVER;
+      printf("The -S / --screensaver flag will be depricated at some point \n"
+             "Use \"-m screensaver\" instead \n");
       break;
     case 'f':
-      fancy = 1;
+      selectedStyle = FANCY;
+      printf("The -f / --fancy flag will be depricated at some point \n"
+             "The fancy mode is now the default look. So there is no need "
+             "include this flag \n");
+      // fancy = 1;
       break;
+    case 'm':
+      if (strcmp(optarg, "arcade") == 0)
+        selectedMode = ARCADE;
+      else if (strcmp(optarg, "autopilot") == 0)
+        selectedMode = AUTOPILOT;
+      else if (strcmp(optarg, "screensaver") == 0)
+        selectedMode = SCREENSAVER;
+      else if (strcmp(optarg, "nromal") == 0)
+        selectedMode = NORMAL;
+      break;
+    case 'l':
+      if (strcmp(optarg, "ascii") == 0)
+        selectedStyle = ASCII;
+      else if (strcmp(optarg, "full") == 0)
+        selectedStyle = FULL;
+      else if (strcmp(optarg, "fancy") == 0)
+        selectedStyle = FANCY;
+      break;
+
     case 'j':
       junk = atoi(optarg);
       if (junk <= 0 || junk > 5)
@@ -537,8 +610,31 @@ int get_time() {
 }
 
 void draw_score(Snake *snake) {
-  move(maxY, 0);
-  printw("Size %i (%i,%i) ", snake->length, maxX, maxY);
+
+  move(minY + maxY, minX);
+
+  attron(COLOR_PAIR(4));
+  if (snakeSize != snake->length) {
+    snakeSize = snake->length;
+
+    printw("Size %i ", snake->length);
+  }
+  attroff(COLOR_PAIR(4));
+}
+
+void draw_walls() {
+
+  for (int i = -1; i < maxX + 1; i++) {
+    draw_point(i, -1, 4, 7);
+  }
+
+  for (int i = -1; i < maxY + 1; i++) {
+    draw_point(-1, i, 4, 7);
+  }
+
+  for (int i = -1; i < maxY + 1; i++) {
+    draw_point(maxX, i, 4, 7);
+  }
 }
 
 void print_help() {
@@ -546,21 +642,32 @@ void print_help() {
   printf(
       "Usage: sssnake [OPTIONS]\n"
       "Options:\n"
-      "  -a, --autopilot    The game plays itself. (Default: no)\n"
-      "  -A, --ascii        Use ascii characters. (Default: no)\n"
+
+      "  -m op, --mode=op     Mode in which the program will run. The "
+      "available "
+      "modes are:\n"
+      "                     normal, arcade, autopilot and "
+      "screensaver.(Default: normal) \n"
+      "  -l op, --look=op     Style in of the cells in the game. The available "
+      "styles are:\n"
+      "                     fancy, full, ascii.(Default: fancy) \n"
+      //"  -a, --autopilot    The game plays itself. (Default: no)\n"
+      //"  -A, --ascii        Use ascii characters. (Default: no)\n"
       "  -s, --speed=N      Speed of the game, from 1 to 20. (Default: 1 )\n"
-      "  -S, --screensaver  Autopilot, but it restarts when it dies. (Default: "
-      "no)\n"
+      //"  -S, --screensaver  Autopilot, but it restarts when it dies. (Default:
+      //"
+      //"no)\n"
       "  -j, --junk=N       Add random blocks of junk, levels from 1 to 5. "
       "(Default: 0 )\n"
-      "  -f, --fancy        Add a fancy spacing between blocks. (Default: no)\n"
+      //"  -f, --fancy        Add a fancy spacing between blocks. (Default:
+      // no)\n"
       "  -h, --help         Print help message. \n"
       "Try to run something like this :\n"
-      "sssnake -s 15 -f -j 5 -S\n"
-      "Warning!!! be careful using the screensaver and junk options "
+      "sssnake -s 15 -j 5 -m screensaver\n"
+      "Warning!!! be careful using the screensaver mode and junk options "
       "at the same time on OLED screens.\nIf the snake is to much time alive "
       "the static dots of junk may burn your screen.\n"
-      "Using the screensaver option alone should be fine.\n"
+      "Using the screensaver mode alone should be fine.\n"
       "For bugs or new features go to : "
       "https://github.com/AngelJumbo/sssnake\n");
 }

@@ -18,13 +18,13 @@ By default it will run like a normal snake game that you can control with wasd, 
 But try this
 
 ```
-sssnake -f -S -s 15
+sssnake -m screensaver -s 15
 ```
 
 or
 
 ``` 
-sssnake -S -s 15 -j 5
+sssnake -l full -m screensaver -s 15 -j 5
 ```
 press Q to quit. 
 Use the -h options to see the option details.
