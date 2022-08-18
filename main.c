@@ -31,14 +31,9 @@ clock_t initTime;
 int selectedStyle = FANCY;
 int selectedMode = NORMAL;
 
-int autopilot = 0;
-int fancy = 0;
-int ascii = 0;
-int screensaver = 0;
 int speed = 200000;
 int junk = 0;
 int score = 0;
-int arcade = 0;
 
 XYMap *blocksTaken = NULL;
 Snake *snake = NULL;
@@ -77,6 +72,12 @@ int main(int argc, char *argv[]) {
   maxY = rows - score;
 
   if (selectedMode == ARCADE) {
+    if (cols < 64 || rows < 22) {
+
+      endwin();
+      printf("The arcade mode requires a minimum of 64 colums by 22 rows\n");
+      return 0;
+    }
     minX = (cols - 60) / 2;
     minY = (rows - 20) / 2;
     maxX = 30;
@@ -196,9 +197,12 @@ int main(int argc, char *argv[]) {
       // fprintf(fp, "Food (%i,%i) \n", food.x, food.y);
       // fclose(fp);
 
-      if (snake->head->x == food.x && snake->head->y == food.y)
-        rand_pos_food(&food, blocksTaken, maxX, maxY);
+      if (snake->head->x == food.x && snake->head->y == food.y) {
 
+        rand_pos_food(&food, blocksTaken, maxX, maxY);
+        if (selectedMode == ARCADE)
+          speed = speed - 1000;
+      }
       if (snake->colission || c == 'q')
         break;
       if (selectedMode == SCREENSAVER && c != ERR) {
