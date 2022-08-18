@@ -25,7 +25,8 @@ int minY = 0;
 int c = East;
 short foodColor = COLOR_GREEN;
 short snakeColor = -1;
-short wallColor = COLOR_RED;
+short junkColor = COLOR_RED;
+short wallColor = -1;
 clock_t initTime;
 
 int selectedStyle = FANCY;
@@ -69,19 +70,19 @@ int main(int argc, char *argv[]) {
   // The width of the game board is half of the columns because I use two
   // characters to represent one point ("██" or "▀ ")
   maxX = cols / 2;
-  maxY = rows - score;
+  maxY = rows - score * 2;
 
   if (selectedMode == ARCADE) {
-    if (cols < 64 || rows < 22) {
+    if (cols < 64 || rows < 24) {
 
       endwin();
       printf("The arcade mode requires a minimum of 64 colums by 22 rows\n");
       return 0;
     }
     minX = (cols - 60) / 2;
-    minY = (rows - 20) / 2;
+    minY = (rows - 24) / 2;
     maxX = 30;
-    maxY = 20;
+    maxY = 22;
     draw_walls();
     score = 1;
   }
@@ -90,10 +91,10 @@ int main(int argc, char *argv[]) {
 
     if (score)
       init_score();
-    // Used to know where the body of the snake and the junk are,
-    // blocksTaken is just a matrix of 2x2 but It can change its dimesions
-    // dinamically if I ever decide to change  them by detecting changes in the
-    // dimensions of the terminal.
+    //  Used to know where the body of the snake and the junk are,
+    //  blocksTaken is just a matrix of 2x2 but It can change its dimesions
+    //  dinamically if I ever decide to change  them by detecting changes in the
+    //  dimensions of the terminal.
     blocksTaken = xymap_create(maxX, maxY);
     snake = snake_create(maxX / 2, maxY / 2, direction);
     // A snake with a size of just one cell may break somethings
@@ -292,16 +293,33 @@ void draw_point(int x, int y, short color, int type) {
     addstr("  ");
     break;
   case 8:
+    attron(A_BOLD);
     addstr("o ");
+    attroff(A_BOLD);
     break;
   case 9:
+    attron(A_BOLD);
     addstr("@ ");
+    attroff(A_BOLD);
     break;
   case 10:
+    attron(A_BOLD);
     addstr("x ");
+    attroff(A_BOLD);
     break;
   case 11:
+    attron(A_BOLD);
     addstr("8 ");
+    attroff(A_BOLD);
+    break;
+  case 12:
+    addstr("--");
+    break;
+  case 13:
+    addstr("| ");
+    break;
+  case 14:
+    addstr(" |");
     break;
   }
 
@@ -496,19 +514,31 @@ void init_game(void) {
   use_default_colors();
   init_pair(1, snakeColor, -1);
   init_pair(2, foodColor, -1);
-  init_pair(3, wallColor, -1);
-  init_pair(4, COLOR_BLACK, 15);
+  init_pair(3, junkColor, -1);
+  init_pair(4, wallColor, -1);
 }
 
 void init_score() {
 
-  move(minY + maxY, minX);
+  // move(minY + maxY -1, minX);
+  int y = maxY;
+  switch (selectedStyle) {
+  case FANCY:
 
-  attron(COLOR_PAIR(4));
-  for (int i = 0; i < maxX; i++)
-    printw("  ");
+    for (int i = 0; i < maxX; i++)
+      draw_point(i, y, 4, 2);
+    break;
+  case FULL:
 
-  attroff(COLOR_PAIR(4));
+    for (int i = 0; i < maxX; i++)
+      draw_point(i, y, 4, 0);
+    break;
+  case ASCII:
+
+    for (int i = 0; i < maxX; i++)
+      draw_point(i, y, 4, 12);
+    break;
+  }
 
   // initTime = clock();
 }
@@ -615,29 +645,61 @@ int get_time() {
 
 void draw_score(Snake *snake) {
 
-  move(minY + maxY, minX);
+  move(minY + maxY + 1, minX);
 
-  attron(COLOR_PAIR(4));
+  // attron(COLOR_PAIR(4));
   if (snakeSize != snake->length) {
     snakeSize = snake->length;
 
     printw("Size %i ", snake->length);
   }
-  attroff(COLOR_PAIR(4));
+  // attroff(COLOR_PAIR(4));
 }
 
 void draw_walls() {
+  switch (selectedStyle) {
+  case FANCY:
 
-  for (int i = -1; i < maxX + 1; i++) {
-    draw_point(i, -1, 4, 7);
-  }
+    for (int i = -1; i < maxX + 1; i++) {
+      draw_point(i, -1, 4, 2);
+    }
 
-  for (int i = -1; i < maxY + 1; i++) {
-    draw_point(-1, i, 4, 7);
-  }
+    for (int i = -1; i < maxY + 1; i++) {
+      draw_point(-1, i, 4, 3);
+    }
 
-  for (int i = -1; i < maxY + 1; i++) {
-    draw_point(maxX, i, 4, 7);
+    for (int i = -1; i < maxY + 1; i++) {
+      draw_point(maxX, i, 4, 3);
+    }
+
+    break;
+  case FULL:
+    for (int i = -1; i < maxX + 1; i++) {
+      draw_point(i, -1, 4, 0);
+    }
+
+    for (int i = -1; i < maxY + 1; i++) {
+      draw_point(-1, i, 4, 0);
+    }
+
+    for (int i = -1; i < maxY + 1; i++) {
+      draw_point(maxX, i, 4, 0);
+    }
+
+    break;
+  case ASCII:
+    for (int i = -1; i < maxX + 1; i++) {
+      draw_point(i, -1, 4, 12);
+    }
+
+    for (int i = -1; i < maxY + 1; i++) {
+      draw_point(-1, i, 4, 14);
+    }
+
+    for (int i = -1; i < maxY + 1; i++) {
+      draw_point(maxX, i, 4, 13);
+    }
+    break;
   }
 }
 

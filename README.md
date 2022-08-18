@@ -1,4 +1,4 @@
-# sssnake(smart and sexy snake)
+# sssnake
 The classic snake game for the terminal that can plays itself and be use like a screensaver.
 [![asciicast](https://asciinema.org/a/477685.svg)](https://asciinema.org/a/477685)
 ## Installation
@@ -23,8 +23,8 @@ sssnake -m screensaver -s 15
 
 or
 
-``` 
 sssnake -l full -m screensaver -s 15 -j 5
+``` 
 ```
 press Q to quit. 
 Use the -h options to see the option details.
