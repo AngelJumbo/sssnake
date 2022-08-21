@@ -321,6 +321,12 @@ void draw_point(int x, int y, short color, int type) {
   case 14:
     addstr(" |");
     break;
+  case 16:
+    addwstr(L"▚ ");
+    break;
+  case 17:
+    addwstr(L"▚▀");
+    break;
   }
 
   attroff(COLOR_PAIR(color));
@@ -664,13 +670,16 @@ void draw_walls() {
       draw_point(i, -1, 4, 2);
     }
 
-    for (int i = -1; i < maxY + 1; i++) {
-      draw_point(-1, i, 4, 3);
+    for (int i = 0; i < maxY; i++) {
+      draw_point(-1, i, 4, 16);
     }
 
     for (int i = -1; i < maxY + 1; i++) {
-      draw_point(maxX, i, 4, 3);
+      draw_point(maxX, i, 4, 16);
     }
+
+    draw_point(-1, -1, 4, 17);
+    draw_point(-1, maxY, 4, 17);
 
     break;
   case FULL:
