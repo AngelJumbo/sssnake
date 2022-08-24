@@ -42,7 +42,6 @@ sssnake -l full -m screensaver -s 15 -j 5
 press Q to quit.
 
 Use the -h options to see the option details.
- 
 
 ## Faq
 
@@ -54,7 +53,8 @@ Use the -h options to see the option details.
    Smart and sexy snake => sssnake.
 - Why C?
   I like simple and efficient things.
- 
+
+
 
 ## Credits
 
