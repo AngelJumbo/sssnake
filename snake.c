@@ -16,14 +16,15 @@ void snake_part_free(SnakePart *snakePart) {
   }
 }
 
-Snake *snake_create(int x, int y, int direction) {
+Snake *snake_create(int x, int y, int direction, short teleport) {
   Snake *tmp = (Snake *)malloc(sizeof(Snake));
   tmp->head = snake_part_create(x, y, NULL);
   tmp->tail = tmp->head;
   tmp->direction = direction;
   tmp->length = 1;
   tmp->grow = 1;
-  tmp->colission = 0;
+  tmp->collision = 0;
+  tmp->teleport = teleport;
   return tmp;
 }
 
@@ -43,7 +44,16 @@ void snake_free(Snake *snake) {
 static void move_body(Snake *snake, XYMap *blocksTaken, Point *food, int prevx,
                       int prevy, int maxX, int maxY) {
   int prevx2, prevy2;
-
+  if (snake->teleport) {
+    if (snake->head->x >= maxX)
+      snake->head->x = snake->head->x - maxX;
+    if (snake->head->y >= maxY)
+      snake->head->y = snake->head->y - maxY;
+    if (snake->head->x < 0)
+      snake->head->x = maxX + snake->head->x;
+    if (snake->head->y < 0)
+      snake->head->y = maxY + snake->head->y;
+  }
   // xymap_unmark(blocksTaken, snake->tail->x, snake->tail->y);
 
   SnakePart *snakePart = snake->head->next;
@@ -61,7 +71,7 @@ static void move_body(Snake *snake, XYMap *blocksTaken, Point *food, int prevx,
   if (food->x == snake->head->x && food->y == snake->head->y) {
     // rand_pos_food(food, blocksTaken, maxX, maxY);
     snake->grow++;
-    snake->colission = 0;
+    snake->collision = 0;
   }
 
   if (snake->grow) {
@@ -95,22 +105,22 @@ void update_position(Snake *snake, XYMap *blocksTaken, Point *food, int dir,
 
   switch (snake->direction) {
   case North:
-    check_colission(snake, blocksTaken, snake->head->x, snake->head->y - 1,
+    check_collision(snake, blocksTaken, snake->head->x, snake->head->y - 1,
                     maxX, maxY);
     snakePart->y--;
     break;
   case South:
-    check_colission(snake, blocksTaken, snake->head->x, snake->head->y + 1,
+    check_collision(snake, blocksTaken, snake->head->x, snake->head->y + 1,
                     maxX, maxY);
     snakePart->y++;
     break;
   case East:
-    check_colission(snake, blocksTaken, snake->head->x + 1, snake->head->y,
+    check_collision(snake, blocksTaken, snake->head->x + 1, snake->head->y,
                     maxX, maxY);
     snakePart->x++;
     break;
   case West:
-    check_colission(snake, blocksTaken, snake->head->x - 1, snake->head->y,
+    check_collision(snake, blocksTaken, snake->head->x - 1, snake->head->y,
                     maxX, maxY);
     snakePart->x--;
     break;
@@ -126,24 +136,34 @@ void update_position_autopilot(Snake *snake, XYMap *blocksTaken, Point *food,
   SnakePart *snakePart = snake->head;
   prevx = snakePart->x;
   prevy = snakePart->y;
-  check_colission(snake, blocksTaken, x, y, maxX, maxY);
+  check_collision(snake, blocksTaken, x, y, maxX, maxY);
   snake->head->x = x;
   snake->head->y = y;
 
   move_body(snake, blocksTaken, food, prevx, prevy, maxX, maxY);
 }
 
-void check_colission(Snake *sn, XYMap *blocksTaken, int x, int y, int maxX,
+void check_collision(Snake *sn, XYMap *blocksTaken, int x, int y, int maxX,
                      int maxY) {
+  if (sn->teleport) {
+    if (x >= maxX)
+      x = x - maxX;
+    if (y >= maxY)
+      y = y - maxY;
+    if (x < 0)
+      x = maxX + x;
+    if (y < 0)
+      y = maxY + y;
+  }
   if (x >= maxX || y >= maxY || x < 0 || y < 0)
-    sn->colission = 3;
+    sn->collision = 3;
   else if (xymap_marked(blocksTaken, x, y)) {
     if (sn->tail->x == x && sn->tail->y == y)
-      sn->colission = 0;
+      sn->collision = 0;
     else
-      sn->colission = xymap_marked(blocksTaken, x, y);
+      sn->collision = xymap_marked(blocksTaken, x, y);
   } else
-    sn->colission = 0;
+    sn->collision = 0;
 }
 
 void rand_pos_food(Point *food, XYMap *blocksTaken, int maxX, int maxY) {

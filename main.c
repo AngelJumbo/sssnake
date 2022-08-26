@@ -14,7 +14,7 @@
 #include "snake.h"
 #include "xymap.h"
 
-enum styles { FANCY, FULL, ASCII, DOTS, PIPES };
+enum styles { FANCY, FULL, ASCII, DOTS };
 enum modes { NORMAL, ARCADE, AUTOPILOT, SCREENSAVER };
 
 int direction = East;
@@ -36,6 +36,7 @@ int selectedMode = NORMAL;
 int speed = 200000;
 int junk = 0;
 int score = 0;
+short teleport = 0;
 
 XYMap *blocksTaken = NULL;
 Snake *snake = NULL;
@@ -86,7 +87,8 @@ int main(int argc, char *argv[]) {
     maxY = 22;
     draw_walls();
     score = 1;
-  }
+  } else if (selectedMode == SCREENSAVER || selectedMode == AUTOPILOT)
+    teleport = 0;
 
   do { // This loop goes forever if the option "screensaver" is given.
 
@@ -97,7 +99,7 @@ int main(int argc, char *argv[]) {
     //  dinamically if I ever decide to change  them by detecting changes in the
     //  dimensions of the terminal.
     blocksTaken = xymap_create(maxX, maxY);
-    snake = snake_create(maxX / 2, maxY / 2, direction);
+    snake = snake_create(maxX / 2, maxY / 2, direction, teleport);
     // A snake with a size of just one cell may break somethings
     // so just grow it by one at the start.
     snake->grow = 1;
@@ -205,7 +207,7 @@ int main(int argc, char *argv[]) {
         if (selectedMode == ARCADE)
           speed = speed - 2000;
       }
-      if (snake->colission || c == 'q')
+      if (snake->collision || c == 'q')
         break;
       if (selectedMode == SCREENSAVER && c != ERR) {
         c = 'q';
@@ -433,7 +435,26 @@ void draw_snake(Snake *snake) {
 
       draw_point(sPart->x, sPart->y, 0, 1);
     }
-    // draw the second section of the body
+
+    if (snake->teleport) {
+      if (sPart->next->x == 0 && sPart->x == maxX - 1 &&
+          sPart->next->y == sPart->y) {
+        draw_point(sPart->x, sPart->y, 0, 1);
+      } else if (sPart->next->x == maxX - 1 && sPart->x == 0 &&
+                 sPart->next->y == sPart->y) {
+
+        draw_point(sPart->x, sPart->y, 0, 1);
+      } else if (sPart->next->x == sPart->x && sPart->next->y == 0 &&
+                 sPart->y == maxY - 1) {
+        draw_point(sPart->x, sPart->y, 0, 1);
+      } else if (sPart->next->x == sPart->x && sPart->next->y == maxY - 1 &&
+                 sPart->y == 0) {
+
+        draw_point(sPart->x, sPart->y, 0, 1);
+      }
+    }
+
+    // draw the tail
     if (sPart2->prev->x == sPart2->x + 1 && sPart2->prev->y == sPart2->y) {
       draw_point(sPart2->x, sPart2->y, 0, 2);
     } else if (sPart2->prev->x == sPart2->x - 1 &&
@@ -446,6 +467,7 @@ void draw_snake(Snake *snake) {
                sPart2->prev->y == sPart2->y - 1) {
       draw_point(sPart2->x, sPart2->y, 0, 1);
     }
+    // draw the second section of the body
     if (snake->length > 2) {
       SnakePart *sPart3 = sPart->next;
       if (sPart3->prev->x == sPart3->x + 1 && sPart3->prev->y == sPart3->y &&
@@ -502,163 +524,6 @@ void draw_snake(Snake *snake) {
     // draw the second section of the body
     draw_point(sPart->next->x, sPart->next->y, 0, 1);
     break;
-  case PIPES:
-    // draw the head
-    if (sPart->next->x == sPart->x + 1 && sPart->next->y == sPart->y) {
-      draw_point(sPart->x, sPart->y, 0, 26);
-    } else if (sPart->next->x == sPart->x - 1 && sPart->next->y == sPart->y) {
-
-      draw_point(sPart->x, sPart->y, 0, 1);
-    } else if (sPart->next->x == sPart->x && sPart->next->y == sPart->y + 1) {
-      draw_point(sPart->x, sPart->y, 0, 3);
-    } else if (sPart->next->x == sPart->x && sPart->next->y == sPart->y - 1) {
-
-      draw_point(sPart->x, sPart->y, 0, 1);
-    }
-    // draw the head
-    /*
-    if (sPart->next->x == sPart->x + 1 && sPart->next->y == sPart->y) {
-      draw_point(sPart->x, sPart->y, 0, 18);
-    } else if (sPart->next->x == sPart->x - 1 && sPart->next->y == sPart->y) {
-
-      draw_point(sPart->x, sPart->y, 0, 25);
-    } else if (sPart->next->x == sPart->x && sPart->next->y == sPart->y + 1) {
-      draw_point(sPart->x, sPart->y, 0, 19);
-    } else if (sPart->next->x == sPart->x && sPart->next->y == sPart->y - 1) {
-
-      draw_point(sPart->x, sPart->y, 0, 24);
-    }*/
-    // draw the second section of the body
-    if (sPart2->prev->x == sPart2->x + 1 && sPart2->prev->y == sPart2->y) {
-      draw_point(sPart2->x, sPart2->y, 0, 18);
-    } else if (sPart2->prev->x == sPart2->x - 1 &&
-               sPart2->prev->y == sPart2->y) {
-      draw_point(sPart2->x, sPart2->y, 0, 25);
-    } else if (sPart2->prev->x == sPart2->x &&
-               sPart2->prev->y == sPart2->y + 1) {
-      draw_point(sPart2->x, sPart2->y, 0, 19);
-    } else if (sPart2->prev->x == sPart2->x &&
-               sPart2->prev->y == sPart2->y - 1) {
-      draw_point(sPart2->x, sPart2->y, 0, 24);
-    }
-    if (snake->length > 2) {
-      SnakePart *sPart3 = sPart->next;
-      if (sPart3->prev->x == sPart3->x + 1 && sPart3->prev->y == sPart3->y &&
-          sPart3->next->x == sPart3->x && sPart3->next->y == sPart3->y + 1) {
-
-        draw_point(sPart3->x, sPart3->y, 0, 22);
-      } else if (sPart3->prev->x == sPart3->x &&
-                 sPart3->prev->y == sPart3->y + 1 &&
-                 sPart3->next->x == sPart3->x + 1 &&
-                 sPart3->next->y == sPart3->y) {
-
-        draw_point(sPart3->x, sPart3->y, 0, 22);
-      } else if (sPart3->prev->x == sPart3->x + 1 &&
-                 sPart3->prev->y == sPart3->y && sPart3->next->x == sPart3->x &&
-                 sPart3->next->y == sPart3->y + 1) {
-        /*
-          a p
-          n
-        */
-        draw_point(sPart3->x, sPart3->y, 0, 22);
-      } else if (sPart3->prev->x == sPart3->x + 1 &&
-                 sPart3->prev->y == sPart3->y && sPart3->next->x == sPart3->x &&
-                 sPart3->next->y == sPart3->y - 1) {
-        /*
-          n
-          a p
-
-        */
-        draw_point(sPart3->x, sPart3->y, 0, 23);
-      } else if (sPart3->prev->x == sPart3->x + 1 &&
-                 sPart3->prev->y == sPart3->y &&
-                 sPart3->next->x == sPart3->x - 1 &&
-                 sPart3->next->y == sPart3->y) {
-        /*
-          n a p
-
-        */
-        draw_point(sPart3->x, sPart3->y, 0, 18);
-      } else if (sPart3->prev->x == sPart3->x - 1 &&
-                 sPart3->prev->y == sPart3->y && sPart3->next->x == sPart3->x &&
-                 sPart3->next->y == sPart3->y + 1) {
-        /*
-          p a
-            n
-        */
-        draw_point(sPart3->x, sPart3->y, 0, 21);
-      } else if (sPart3->prev->x == sPart3->x - 1 &&
-                 sPart3->prev->y == sPart3->y && sPart3->next->x == sPart3->x &&
-                 sPart3->next->y == sPart3->y - 1) {
-        /*
-            n
-          p a
-
-        */
-        draw_point(sPart3->x, sPart3->y, 0, 20);
-      } else if (sPart3->prev->x == sPart3->x - 1 &&
-                 sPart3->prev->y == sPart3->y &&
-                 sPart3->next->x == sPart3->x + 1 &&
-                 sPart3->next->y == sPart3->y) {
-        /*
-
-          p a n
-
-        */
-        draw_point(sPart3->x, sPart3->y, 0, 18);
-      } else if (sPart3->prev->x == sPart3->x &&
-                 sPart3->prev->y == sPart3->y + 1 &&
-                 sPart3->next->x == sPart3->x &&
-                 sPart3->next->y == sPart3->y - 1) {
-        /*
-           n
-           a
-           p
-        */
-        draw_point(sPart3->x, sPart3->y, 0, 19);
-      } else if (sPart3->prev->x == sPart3->x &&
-                 sPart3->prev->y == sPart3->y - 1 &&
-                 sPart3->next->x == sPart3->x &&
-                 sPart3->next->y == sPart3->y + 1) {
-        /*
-           p
-           a
-           n
-        */
-        draw_point(sPart3->x, sPart3->y, 0, 19);
-      } else if (sPart3->prev->x == sPart3->x &&
-                 sPart3->prev->y == sPart3->y - 1 &&
-                 sPart3->next->x == sPart3->x + 1 &&
-                 sPart3->next->y == sPart3->y) {
-        /*
-           p
-           a n
-
-        */
-        draw_point(sPart3->x, sPart3->y, 0, 23);
-      } else if (sPart3->prev->x == sPart3->x &&
-                 sPart3->prev->y == sPart3->y - 1 &&
-                 sPart3->next->x == sPart3->x - 1 &&
-                 sPart3->next->y == sPart3->y) {
-        /*
-           p
-         n a
-
-        */
-        draw_point(sPart3->x, sPart3->y, 0, 20);
-      } else if (sPart3->prev->x == sPart3->x &&
-                 sPart3->prev->y == sPart3->y + 1 &&
-                 sPart3->next->x == sPart3->x - 1 &&
-                 sPart3->next->y == sPart3->y) {
-        /*
-
-         n a
-           p
-        */
-        draw_point(sPart3->x, sPart3->y, 0, 21);
-      }
-    }
-    break;
   }
 }
 void draw_food(int x, int y) {
@@ -666,7 +531,6 @@ void draw_food(int x, int y) {
   case ASCII:
     draw_point(x, y, 2, 11);
     break;
-  case PIPES:
   case DOTS:
   case FANCY:
     draw_point(x, y, 2, 1);
@@ -684,7 +548,6 @@ void draw_junk(List *junkList) {
     case ASCII:
       draw_point(jpoint->x, jpoint->y, 3, 10);
       break;
-    case PIPES:
     case DOTS:
     case FANCY:
       draw_point(jpoint->x, jpoint->y, 3, 1);
@@ -724,7 +587,6 @@ void init_score() {
   // move(minY + maxY -1, minX);
   int y = maxY;
   switch (selectedStyle) {
-  case PIPES:
   case DOTS:
   case FANCY:
 
@@ -750,17 +612,13 @@ void init_options(int argc, char *argv[]) {
   int op;
   int speedMult;
 
-  const struct option long_options[] = {{"help", 0, NULL, 'h'},
-                                        {"speed", 1, NULL, 's'},
-                                        {"screensaver", 0, NULL, 'S'},
-                                        {"fancy", 0, NULL, 'f'},
-                                        {"junk", 1, NULL, 'j'},
-                                        {"autopilot", 0, NULL, 'a'},
-                                        {"ascii", 0, NULL, 'A'},
-                                        {"score", 0, NULL, 'z'},
-                                        {"look", 1, NULL, 'l'},
-                                        {"mode", 1, NULL, 'm'},
-                                        {NULL, 0, NULL, 0}};
+  const struct option long_options[] = {
+      {"help", 0, NULL, 'h'},        {"speed", 1, NULL, 's'},
+      {"screensaver", 0, NULL, 'S'}, {"fancy", 0, NULL, 'f'},
+      {"junk", 1, NULL, 'j'},        {"autopilot", 0, NULL, 'a'},
+      {"ascii", 0, NULL, 'A'},       {"score", 0, NULL, 'z'},
+      {"look", 1, NULL, 'l'},        {"mode", 1, NULL, 'm'},
+      {"teleport", 0, NULL, 't'},    {NULL, 0, NULL, 0}};
 
   if (argc == 1) {
     printf("You ran this program with no extra options,\n"
@@ -769,7 +627,7 @@ void init_options(int argc, char *argv[]) {
            "sssnake -h\n ");
   }
 
-  while ((op = getopt_long(argc, argv, ":aSfs:j:hAzl:m:", long_options,
+  while ((op = getopt_long(argc, argv, ":aSfs:j:hAzl:m:t", long_options,
                            NULL)) != -1) {
     switch (op) {
     case 'A':
@@ -802,8 +660,12 @@ void init_options(int argc, char *argv[]) {
         selectedMode = AUTOPILOT;
       else if (strcmp(optarg, "screensaver") == 0)
         selectedMode = SCREENSAVER;
-      else if (strcmp(optarg, "nromal") == 0)
+      else if (strcmp(optarg, "normal") == 0)
         selectedMode = NORMAL;
+      else {
+        printf("Incomplete or invalid argument for -m / --mode\n");
+        exit(0);
+      }
       break;
     case 'l':
       if (strcmp(optarg, "ascii") == 0)
@@ -814,8 +676,10 @@ void init_options(int argc, char *argv[]) {
         selectedStyle = FANCY;
       else if (strcmp(optarg, "dots") == 0)
         selectedStyle = DOTS;
-      else if (strcmp(optarg, "pipes") == 0)
-        selectedStyle = PIPES;
+      else {
+        printf("Incomplete or invalid argument for -l / --look\n");
+        exit(0);
+      }
       break;
 
     case 'j':
@@ -831,6 +695,9 @@ void init_options(int argc, char *argv[]) {
       break;
     case 'z':
       score = 1;
+      break;
+    case 't':
+      teleport = 1;
       break;
     case 'h':
       print_help();
@@ -865,7 +732,6 @@ void draw_score(Snake *snake) {
 
 void draw_walls() {
   switch (selectedStyle) {
-  case PIPES:
   case DOTS:
   case FANCY:
 
@@ -928,7 +794,7 @@ void print_help() {
       "screensaver.(Default: normal) \n"
       "  -l op, --look=op     Style in of the cells in the game. The available "
       "styles are:\n"
-      "                     fancy, full, ascii, dots and pipes.(Default: "
+      "                     fancy, full, ascii and dots .(Default: "
       "fancy) \n"
       //"  -a, --autopilot    The game plays itself. (Default: no)\n"
       //"  -A, --ascii        Use ascii characters. (Default: no)\n"
@@ -940,6 +806,8 @@ void print_help() {
       "(Default: 0 )\n"
       //"  -f, --fancy        Add a fancy spacing between blocks. (Default:
       // no)\n"
+      "  -t, --teleport     Teleport between borders for the normal and arcade "
+      "modes. \n"
       "  -h, --help         Print help message. \n"
       "Try to run something like this :\n"
       "sssnake -s 15 -j 5 -m screensaver\n"

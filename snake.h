@@ -18,7 +18,8 @@ typedef struct Snake_ {
   int direction;
   int length;
   int grow;
-  int colission;
+  int collision;
+  short teleport;
 } Snake;
 
 typedef struct point {
@@ -29,7 +30,7 @@ typedef struct point {
 SnakePart *snake_part_create(int x, int y, SnakePart *prev);
 void snake_part_free(SnakePart *snakePart);
 
-Snake *snake_create(int x, int y, int direction);
+Snake *snake_create(int x, int y, int direction, short teleport);
 void snake_free(Snake *snake);
 
 void update_position(Snake *snake, XYMap *blocksTaken, Point *food, int dir,
@@ -38,7 +39,7 @@ void update_position(Snake *snake, XYMap *blocksTaken, Point *food, int dir,
 void update_position_autopilot(Snake *snake, XYMap *blocksTaken, Point *food,
                                int x, int y, int maxX, int maxY);
 
-void check_colission(Snake *sn, XYMap *blocksTaken, int x, int y, int maxX,
+void check_collision(Snake *sn, XYMap *blocksTaken, int x, int y, int maxX,
                      int maxY);
 
 void rand_pos_food(Point *food, XYMap *blocksTaken, int maxX, int maxY);
