@@ -801,8 +801,7 @@ void print_help() {
       "(Default: 0 )\n"
       //"  -f, --fancy        Add a fancy spacing between blocks. (Default:
       // no)\n"
-      "  -t, --teleport     Teleport between borders for the normal and arcade "
-      "modes. \n"
+      "  -t, --teleport     Teleport between borders.\n"
       "  -h, --help         Print help message. \n"
       "Try to run something like this :\n"
       "sssnake -s 15 -j 5 -m screensaver\n"
