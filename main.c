@@ -87,8 +87,8 @@ int main(int argc, char *argv[]) {
     maxY = 22;
     draw_walls();
     score = 1;
-  } else if (selectedMode == SCREENSAVER || selectedMode == AUTOPILOT)
-    teleport = 0;
+  } // else if (selectedMode == SCREENSAVER || selectedMode == AUTOPILOT)
+    // teleport = 0;
 
   do { // This loop goes forever if the option "screensaver" is given.
 
@@ -437,19 +437,14 @@ void draw_snake(Snake *snake) {
     }
 
     if (snake->teleport) {
-      if (sPart->next->x == 0 && sPart->x == maxX - 1 &&
-          sPart->next->y == sPart->y) {
-        draw_point(sPart->x, sPart->y, 0, 1);
-      } else if (sPart->next->x == maxX - 1 && sPart->x == 0 &&
-                 sPart->next->y == sPart->y) {
-
-        draw_point(sPart->x, sPart->y, 0, 1);
-      } else if (sPart->next->x == sPart->x && sPart->next->y == 0 &&
-                 sPart->y == maxY - 1) {
-        draw_point(sPart->x, sPart->y, 0, 1);
-      } else if (sPart->next->x == sPart->x && sPart->next->y == maxY - 1 &&
-                 sPart->y == 0) {
-
+      if ((sPart->next->x == 0 && sPart->x == maxX - 1 &&
+           sPart->next->y == sPart->y) ||
+          (sPart->next->x == maxX - 1 && sPart->x == 0 &&
+           sPart->next->y == sPart->y) ||
+          (sPart->next->x == sPart->x && sPart->next->y == 0 &&
+           sPart->y == maxY - 1) ||
+          (sPart->next->x == sPart->x && sPart->next->y == maxY - 1 &&
+           sPart->y == 0)) {
         draw_point(sPart->x, sPart->y, 0, 1);
       }
     }

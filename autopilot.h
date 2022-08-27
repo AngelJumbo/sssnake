@@ -34,7 +34,8 @@ int is_unblocked(XYMap *xymap, Cell **cellDetails, int x, int y, int x2, int y2,
 // been reached or not
 int is_destination(int x, int y, Point dest);
 // A Utility Function to calculate the 'h' heuristics.
-int calculate_h_value(int x, int y, Point dest);
+int calculate_h_value(int x, int y, Point dest, int maxX, int maxY,
+                      short teleport);
 // A Utility Function to trace the path from the source
 // to destination
 Stack *trace_path(Cell **cellDetails, Point dest, int maxX);

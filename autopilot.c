@@ -76,10 +76,24 @@ int is_destination(int x, int y, Point dest) {
     return 0;
 }
 
-int calculate_h_value(int x, int y, Point dest) {
-  // not the distance formula because is dumb to use sqrt so much and we don't
-  // need to be so precise
-  return abs(y - dest.y) + abs(x - dest.x);
+int calculate_h_value(int x, int y, Point dest, int maxX, int maxY,
+                      short teleport) {
+  if (!teleport)
+    // not the distance formula because is dumb to use sqrt so much and we don't
+    // need to be so precise
+    return abs(y - dest.y) + abs(x - dest.x);
+  else {
+    int min = abs(y - dest.y) + abs(x - dest.x);
+    int h2 = y > dest.y ? maxY - y + dest.y + abs(x - dest.x)
+                        : y + maxY - dest.y + abs(x - dest.x);
+    int h3 = x > dest.x ? maxX - x + dest.x + abs(y - dest.y)
+                        : x + maxX - dest.x + abs(y - dest.y);
+    if (min > h2)
+      min = h2;
+    if (min > h3)
+      min = h3;
+    return min;
+  }
 }
 
 Stack *trace_path(Cell **cellDetails, Point dest, int maxX) {
@@ -216,17 +230,22 @@ Stack *a_star_search(XYMap *xymap, Snake *snake, int maxX, int maxY, Point src,
     */
     // To store the 'g', 'h' and 'f' of the 4 successors
     double gNew, hNew, fNew;
-
+    int px, py;
     //----------- 1st Successor (North) ------------
 
     // Only process this cell if this is a valid one
-    if (is_valid(i - 1, j, maxX, maxY)) {
+    px = i - 1;
+    py = j;
+    if (snake->teleport && px < 0)
+      px = maxX - 1;
+
+    if (is_valid(px, py, maxX, maxY)) {
       // If the destination cell is the same as the
       // current successor
-      if (is_destination(i - 1, j, dest)) {
+      if (is_destination(px, py, dest)) {
         // Set the Parent of the destination cell
-        cellDetails[(i - 1) + maxX * j]->parent_i = i;
-        cellDetails[(i - 1) + maxX * j]->parent_j = j;
+        cellDetails[px + maxX * py]->parent_i = i;
+        cellDetails[px + maxX * py]->parent_j = j;
         // printf("The destination cell is found\n");
         path = trace_path(cellDetails, dest, maxX);
         break;
@@ -234,10 +253,10 @@ Stack *a_star_search(XYMap *xymap, Snake *snake, int maxX, int maxY, Point src,
       // If the successor is already on the closed
       // list or if it is blocked, then ignore it.
       // Else do the following
-      else if (!closedList[i - 1][j] &&
-               is_unblocked(xymap, cellDetails, i, j, i - 1, j, maxX)) {
+      else if (!closedList[px][py] &&
+               is_unblocked(xymap, cellDetails, i, j, px, py, maxX)) {
         gNew = cellDetails[i + maxX * j]->g + 1.0;
-        hNew = calculate_h_value(i - 1, j, dest);
+        hNew = calculate_h_value(px, py, dest, maxX, maxY, snake->teleport);
         fNew = gNew + hNew;
 
         // If it isn’t on the open list, add it to
@@ -248,32 +267,36 @@ Stack *a_star_search(XYMap *xymap, Snake *snake, int maxX, int maxY, Point src,
         // If it is on the open list already, check
         // to see if this path to that square is
         // better, using 'f' cost as the measure.
-        if (cellDetails[(i - 1) + maxX * j]->f == FLT_MAX ||
-            cellDetails[(i - 1) + maxX * j]->f > fNew) {
-          minheap_add(openList, point_create(i - 1, j), fNew);
+        if (cellDetails[px + maxX * py]->f == FLT_MAX ||
+            cellDetails[px + maxX * py]->f > fNew) {
+          minheap_add(openList, point_create(px, py), fNew);
 
           // Update the details of this cell
-          cellDetails[(i - 1) + maxX * j]->f = fNew;
-          cellDetails[(i - 1) + maxX * j]->g = gNew;
-          cellDetails[(i - 1) + maxX * j]->h = hNew;
-          cellDetails[(i - 1) + maxX * j]->parent_i = i;
-          cellDetails[(i - 1) + maxX * j]->parent_j = j;
+          cellDetails[px + maxX * py]->f = fNew;
+          cellDetails[px + maxX * py]->g = gNew;
+          cellDetails[px + maxX * py]->h = hNew;
+          cellDetails[px + maxX * py]->parent_i = i;
+          cellDetails[px + maxX * py]->parent_j = j;
           // cellDetails[(i - 1) + maxX * j]->head =
           // copy_and_move(cellDetails[i + maxX * j]->head, i - 1, j);
-          copy_and_move(cellDetails, i, j, i - 1, j, maxX);
+          copy_and_move(cellDetails, i, j, px, py, maxX);
         }
       }
     }
     //----------- 2nd Successor (South) ------------
 
     // Only process this cell if this is a valid one
-    if (is_valid(i + 1, j, maxX, maxY)) {
+    px = i + 1;
+    py = j;
+    if (snake->teleport && px == maxX)
+      px = 0;
+    if (is_valid(px, py, maxX, maxY)) {
       // If the destination cell is the same as the
       // current successor
-      if (is_destination(i + 1, j, dest)) {
+      if (is_destination(px, py, dest)) {
         // Set the Parent of the destination cell
-        cellDetails[(i + 1) + maxX * j]->parent_i = i;
-        cellDetails[(i + 1) + maxX * j]->parent_j = j;
+        cellDetails[px + maxX * py]->parent_i = i;
+        cellDetails[px + maxX * py]->parent_j = j;
         // printf("The destination cell is found\n");
         path = trace_path(cellDetails, dest, maxX);
         break;
@@ -281,10 +304,10 @@ Stack *a_star_search(XYMap *xymap, Snake *snake, int maxX, int maxY, Point src,
       // If the successor is already on the closed
       // list or if it is blocked, then ignore it.
       // Else do the following
-      else if (!closedList[i + 1][j] &&
-               is_unblocked(xymap, cellDetails, i, j, i + 1, j, maxX)) {
+      else if (!closedList[px][py] &&
+               is_unblocked(xymap, cellDetails, i, j, px, py, maxX)) {
         gNew = cellDetails[i + maxX * j]->g + 1.0;
-        hNew = calculate_h_value(i + 1, j, dest);
+        hNew = calculate_h_value(px, py, dest, maxX, maxY, snake->teleport);
         fNew = gNew + hNew;
 
         // If it isn’t on the open list, add it to
@@ -295,19 +318,19 @@ Stack *a_star_search(XYMap *xymap, Snake *snake, int maxX, int maxY, Point src,
         // If it is on the open list already, check
         // to see if this path to that square is
         // better, using 'f' cost as the measure.
-        if (cellDetails[(i + 1) + maxX * j]->f == FLT_MAX ||
-            cellDetails[(i + 1) + maxX * j]->f > fNew) {
-          minheap_add(openList, point_create(i + 1, j), fNew);
+        if (cellDetails[px + maxX * py]->f == FLT_MAX ||
+            cellDetails[px + maxX * py]->f > fNew) {
+          minheap_add(openList, point_create(px, py), fNew);
           // openList.insert(make_pair(fNew, make_pair(i + 1, j)));
           // Update the details of this cell
-          cellDetails[(i + 1) + maxX * j]->f = fNew;
-          cellDetails[(i + 1) + maxX * j]->g = gNew;
-          cellDetails[(i + 1) + maxX * j]->h = hNew;
-          cellDetails[(i + 1) + maxX * j]->parent_i = i;
-          cellDetails[(i + 1) + maxX * j]->parent_j = j;
+          cellDetails[px + maxX * py]->f = fNew;
+          cellDetails[px + maxX * py]->g = gNew;
+          cellDetails[px + maxX * py]->h = hNew;
+          cellDetails[px + maxX * py]->parent_i = i;
+          cellDetails[px + maxX * py]->parent_j = j;
           // cellDetails[(i + 1) + maxX * j]->head =
           // copy_and_move(cellDetails[i + maxX * j]->head, i + 1, j);
-          copy_and_move(cellDetails, i, j, i + 1, j, maxX);
+          copy_and_move(cellDetails, i, j, px, py, maxX);
         }
       }
     }
@@ -315,13 +338,17 @@ Stack *a_star_search(XYMap *xymap, Snake *snake, int maxX, int maxY, Point src,
     //----------- 3rd Successor (East) ------------
 
     // Only process this cell if this is a valid one
-    if (is_valid(i, j + 1, maxX, maxY)) {
+    px = i;
+    py = j + 1;
+    if (snake->teleport && py == maxY)
+      py = 0;
+    if (is_valid(px, py, maxX, maxY)) {
       // If the destination cell is the same as the
       // current successor
-      if (is_destination(i, j + 1, dest)) {
+      if (is_destination(px, py, dest)) {
         // Set the Parent of the destination cell
-        cellDetails[i + maxX * (j + 1)]->parent_i = i;
-        cellDetails[i + maxX * (j + 1)]->parent_j = j;
+        cellDetails[px + maxX * py]->parent_i = i;
+        cellDetails[px + maxX * py]->parent_j = j;
         // printf("The destination cell is found\n");
         path = trace_path(cellDetails, dest, maxX);
         break;
@@ -330,10 +357,10 @@ Stack *a_star_search(XYMap *xymap, Snake *snake, int maxX, int maxY, Point src,
       // If the successor is already on the closed
       // list or if it is blocked, then ignore it.
       // Else do the following
-      else if (!closedList[i][j + 1] &&
-               is_unblocked(xymap, cellDetails, i, j, i, j + 1, maxX)) {
+      else if (!closedList[px][py] &&
+               is_unblocked(xymap, cellDetails, i, j, px, py, maxX)) {
         gNew = cellDetails[i + maxX * j]->g + 1.0;
-        hNew = calculate_h_value(i, j + 1, dest);
+        hNew = calculate_h_value(px, py, dest, maxX, maxY, snake->teleport);
         fNew = gNew + hNew;
 
         // If it isn’t on the open list, add it to
@@ -344,20 +371,20 @@ Stack *a_star_search(XYMap *xymap, Snake *snake, int maxX, int maxY, Point src,
         // If it is on the open list already, check
         // to see if this path to that square is
         // better, using 'f' cost as the measure.
-        if (cellDetails[i + maxX * (j + 1)]->f == FLT_MAX ||
-            cellDetails[i + maxX * (j + 1)]->f > fNew) {
+        if (cellDetails[px + maxX * py]->f == FLT_MAX ||
+            cellDetails[px + maxX * py]->f > fNew) {
           // openList.insert(make_pair(fNew, make_pair(i, j + 1)));
-          minheap_add(openList, point_create(i, j + 1), fNew);
+          minheap_add(openList, point_create(px, py), fNew);
 
           // Update the details of this cell
-          cellDetails[i + maxX * (j + 1)]->f = fNew;
-          cellDetails[i + maxX * (j + 1)]->g = gNew;
-          cellDetails[i + maxX * (j + 1)]->h = hNew;
-          cellDetails[i + maxX * (j + 1)]->parent_i = i;
-          cellDetails[i + maxX * (j + 1)]->parent_j = j;
+          cellDetails[px + maxX * py]->f = fNew;
+          cellDetails[px + maxX * py]->g = gNew;
+          cellDetails[px + maxX * py]->h = hNew;
+          cellDetails[px + maxX * py]->parent_i = i;
+          cellDetails[px + maxX * py]->parent_j = j;
           // cellDetails[i + maxX * (j + 1)]->head =
           // copy_and_move(cellDetails[i + maxX * j]->head, i, j + 1);
-          copy_and_move(cellDetails, i, j, i, j + 1, maxX);
+          copy_and_move(cellDetails, i, j, px, py, maxX);
         }
       }
     }
@@ -365,13 +392,19 @@ Stack *a_star_search(XYMap *xymap, Snake *snake, int maxX, int maxY, Point src,
     //----------- 4th Successor (West) ------------
 
     // Only process this cell if this is a valid one
-    if (is_valid(i, j - 1, maxX, maxY)) {
+    px = i;
+    py = j - 1;
+
+    if (snake->teleport && py < 0)
+      py = maxY - 1;
+
+    if (is_valid(px, py, maxX, maxY)) {
       // If the destination cell is the same as the
       // current successor
-      if (is_destination(i, j - 1, dest)) {
+      if (is_destination(px, py, dest)) {
         // Set the Parent of the destination cell
-        cellDetails[i + maxX * (j - 1)]->parent_i = i;
-        cellDetails[i + maxX * (j - 1)]->parent_j = j;
+        cellDetails[px + maxX * py]->parent_i = i;
+        cellDetails[px + maxX * py]->parent_j = j;
         // printf("The destination cell is found\n");
         path = trace_path(cellDetails, dest, maxX);
         break;
@@ -380,10 +413,10 @@ Stack *a_star_search(XYMap *xymap, Snake *snake, int maxX, int maxY, Point src,
       // If the successor is already on the closed
       // list or if it is blocked, then ignore it.
       // Else do the following
-      else if (!closedList[i][j - 1] &&
-               is_unblocked(xymap, cellDetails, i, j, i, j - 1, maxX)) {
+      else if (!closedList[px][py] &&
+               is_unblocked(xymap, cellDetails, i, j, px, py, maxX)) {
         gNew = cellDetails[i + maxX * j]->g + 1.0;
-        hNew = calculate_h_value(i, j - 1, dest);
+        hNew = calculate_h_value(px, py, dest, maxX, maxY, snake->teleport);
         fNew = gNew + hNew;
 
         // If it isn’t on the open list, add it to
@@ -394,20 +427,20 @@ Stack *a_star_search(XYMap *xymap, Snake *snake, int maxX, int maxY, Point src,
         // If it is on the open list already, check
         // to see if this path to that square is
         // better, using 'f' cost as the measure.
-        if (cellDetails[i + maxX * (j - 1)]->f == FLT_MAX ||
-            cellDetails[i + maxX * (j - 1)]->f > fNew) {
+        if (cellDetails[px + maxX * py]->f == FLT_MAX ||
+            cellDetails[px + maxX * py]->f > fNew) {
           // openList.insert(make_pair(fNew, make_pair(i, j - 1)));
-          minheap_add(openList, point_create(i, j - 1), fNew);
+          minheap_add(openList, point_create(px, py), fNew);
 
           // Update the details of this cell
-          cellDetails[i + maxX * (j - 1)]->f = fNew;
-          cellDetails[i + maxX * (j - 1)]->g = gNew;
-          cellDetails[i + maxX * (j - 1)]->h = hNew;
-          cellDetails[i + maxX * (j - 1)]->parent_i = i;
-          cellDetails[i + maxX * (j - 1)]->parent_j = j;
+          cellDetails[px + maxX * py]->f = fNew;
+          cellDetails[px + maxX * py]->g = gNew;
+          cellDetails[px + maxX * py]->h = hNew;
+          cellDetails[px + maxX * py]->parent_i = i;
+          cellDetails[px + maxX * py]->parent_j = j;
           // cellDetails[i + maxX * (j - 1)]->head =
           // copy_and_move(cellDetails[i + maxX * j]->head, i, j - 1);
-          copy_and_move(cellDetails, i, j, i, j - 1, maxX);
+          copy_and_move(cellDetails, i, j, px, py, maxX);
         }
       }
     }
