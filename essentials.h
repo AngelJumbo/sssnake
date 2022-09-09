@@ -65,6 +65,7 @@ Stack *stack_create();
 void stack_push(Stack *stack, void *data);
 void *stack_pop(Stack *stack);
 void stack_free(Stack *stack);
+Stack *stack_invert(Stack *stack);
 
 HMapNode *hmapnode_create(unsigned int key, void *data);
 HashMap *hashmap_create(int size);

@@ -28,6 +28,31 @@ Snake *snake_create(int x, int y, int direction, short teleport) {
   return tmp;
 }
 
+Snake *snake_copy(Snake *sn) {
+
+  Snake *tmp = (Snake *)malloc(sizeof(Snake));
+  tmp->direction = sn->direction;
+  tmp->length = sn->length;
+  tmp->grow = sn->grow;
+  tmp->collision = sn->collision;
+  tmp->teleport = sn->teleport;
+
+  SnakePart *snp = sn->head;
+  SnakePart *snp2 = NULL;
+  tmp->head = snake_part_create(snp->x, snp->y, NULL);
+  snp = snp->next;
+  snp2 = tmp->head;
+  while (snp != NULL) {
+    snp2->next = snake_part_create(snp->x, snp->y, snp2);
+    snp2 = snp2->next;
+    snp = snp->next;
+  }
+
+  tmp->tail = snp2;
+
+  return tmp;
+}
+
 void snake_free(Snake *snake) {
   if (snake != NULL) {
     SnakePart *part = snake->head;

@@ -42,37 +42,8 @@ Stack *trace_path(Cell **cellDetails, Point dest, int maxX);
 // A Function to find the shortest path between
 // a given source cell to a destination cell according
 // to A* Search Algorithm
-Stack *a_star_search(XYMap *map, Snake *snake, int maxX, int maxY, Point src,
-                     Point dest);
+Stack *a_star_search(XYMap *map, Snake *snake, int maxX, int maxY, Point dest);
 // Driver program to test above function
-/*
-int main() {
-  XYMap *map = xymap_create(10);
-  int maxX = 10;
-  int maxY = 10;
-  xymap_mark(map, 1, 1);
-  xymap_mark(map, 1, 2);
-  xymap_mark(map, 2, 2);
-  xymap_mark(map, 2, 3);
-  xymap_print(map);
+Stack *try_hard(XYMap *xymap, Snake *snake, int maxX, int maxY, Point dest);
 
-  // Source is the left-most bottom-most corner
-  Point *src = point_create(2, 3);
-
-  // Destination is the left-most top-most corner
-  Point *dest = point_create(5, 5);
-
-  Stack *path = a_star_search(map, maxX, maxY, *src, *dest);
-  if (path != NULL) {
-    while (path->count > 0) {
-      Point *point = (Point *)stack_pop(path);
-      printf("(%i,%i)->", point->x, point->y);
-    }
-  } else {
-    printf("Path invalid");
-  }
-
-  return (0);
-}
-*/
 #endif // !AUTOPILOT_H

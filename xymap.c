@@ -17,9 +17,12 @@ void xymap_free(XYMap *map) {
 }
 XYMap *xymap_copy(XYMap *map) {
   XYMap *tmp = xymap_create(map->maxX, map->maxY);
-  for (int i = 0; i < map->maxX * map->maxY; i++) {
+  int max = map->maxX * map->maxY;
+  for (int i = 0; i < max; i++) {
     tmp->arr[i] = map->arr[i];
   }
+  tmp->maxX = map->maxX;
+  tmp->maxY = map->maxY;
   return tmp;
 }
 
@@ -74,7 +77,7 @@ void xymap_print_log(XYMap *map, int headx, int heady, int tailx, int taily) {
         } else if (i == tailx && j == taily) {
           fprintf(fp, "t ");
         } else {
-          fprintf(fp, "O ");
+          fprintf(fp, "%i ", map->arr[i + map->maxX * j]);
         }
       } else {
         fprintf(fp, "  ");

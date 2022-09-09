@@ -75,13 +75,22 @@ void *stack_pop(Stack *stack) {
 
 void stack_free(Stack *stack) {
 
-  void *tmp = stack_pop(stack);
+  void *tmp = NULL;
 
-  while (tmp != NULL) {
-    free(tmp);
+  while (stack->last != NULL) {
     tmp = stack_pop(stack);
+    free(tmp);
   }
   free(stack);
+}
+Stack *stack_invert(Stack *stack) {
+  Stack *tmp = stack_create();
+  tmp->count = stack->count;
+  while (stack->last != NULL) {
+    stack_push(tmp, stack_pop(stack));
+  }
+  stack_free(stack);
+  return tmp;
 }
 
 //--------minheap-----------

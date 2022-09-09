@@ -31,6 +31,9 @@ SnakePart *snake_part_create(int x, int y, SnakePart *prev);
 void snake_part_free(SnakePart *snakePart);
 
 Snake *snake_create(int x, int y, int direction, short teleport);
+
+Snake *snake_copy(Snake *sn);
+
 void snake_free(Snake *snake);
 
 void update_position(Snake *snake, XYMap *blocksTaken, Point *food, int dir,

@@ -1,6 +1,8 @@
 #include "autopilot.h"
+#include "essentials.h"
 #include "snake.h"
 #include "xymap.h"
+#include <stdio.h>
 // Most of this code is based on the code found in
 // https://www.geeksforgeeks.org/a-search-algorithm/
 // but written c instead of c++ with some extra stuff that consider the position
@@ -118,8 +120,9 @@ Stack *trace_path(Cell **cellDetails, Point dest, int maxX) {
   return Path;
 }
 
-Stack *a_star_search(XYMap *xymap, Snake *snake, int maxX, int maxY, Point src,
+Stack *a_star_search(XYMap *xymap, Snake *snake, int maxX, int maxY,
                      Point dest) {
+  Point src = {snake->head->x, snake->head->y};
   // If the source is out of range
   // if (!is_valid(src.x, src.y, maxX, maxY)) {
   // printf("Source is invalid\n");
@@ -349,8 +352,8 @@ Stack *a_star_search(XYMap *xymap, Snake *snake, int maxX, int maxY, Point src,
         // Set the Parent of the destination cell
         cellDetails[px + maxX * py]->parent_i = i;
         cellDetails[px + maxX * py]->parent_j = j;
-        // printf("The destination cell is found\n");
         path = trace_path(cellDetails, dest, maxX);
+        // printf("The destination cell is found\n");
         break;
       }
 
@@ -468,6 +471,294 @@ Stack *a_star_search(XYMap *xymap, Snake *snake, int maxX, int maxY, Point src,
   // reach the destination cell. This may happen when the
   // there is no way to destination cell (due to
   // blockages)
+  if (path != NULL)
+    free(stack_pop(path));
+  return path;
+}
+static Stack *copy_path(Stack *stack) {
+  Node *node = stack->last;
+  Point *ptmp = NULL;
+  if (node != NULL) {
+    ptmp = (Point *)node->data;
+    Stack *tmp = stack_create();
+    tmp->last = node_create(point_create(ptmp->x, ptmp->y));
+    node = node->next;
+    Node *node2 = tmp->last;
+    while (node != NULL) {
 
+      ptmp = (Point *)node->data;
+      node2->next = node_create(point_create(ptmp->x, ptmp->y));
+      node = node->next;
+      node2 = node2->next;
+    }
+    tmp->count = stack->count;
+    return tmp;
+  }
+  return NULL;
+}
+
+static Stack *longest_path(XYMap *xymap, Stack *shortPath, int maxX, int maxY,
+                           Snake *snake, Point *dest) {
+
+  Stack *path = stack_create();
+
+  Point *p1 = (Point *)stack_pop(shortPath);
+  Point *p2 = (Point *)stack_pop(shortPath);
+  // xymap_mark(xymap, p1->x, p1->y, WALL);
+  // xymap_mark(xymap, p2->x, p2->y, WALL);
+  Point *p3 = NULL;
+  Point *p4 = NULL;
+  int x1, x2, y1, y2;
+  int findExp = 0;
+  while (shortPath->last != NULL) {
+
+    xymap_print_log(xymap, snake->head->x, snake->head->y, snake->tail->x,
+                    snake->tail->y);
+    x1 = p1->x + 1;
+    y1 = p1->y;
+    x2 = p2->x + 1;
+    y2 = p2->y;
+    if ((x1 == x2) && is_valid(x1, y1, maxX, maxY) &&
+        !xymap_marked(xymap, x1, y1) && !xymap_marked(xymap, x2, y2)) {
+
+      stack_push(shortPath, p2);
+
+      xymap_mark(xymap, p2->x, p2->y, WALL);
+      p2 = point_create(x2, y2);
+      stack_push(shortPath, p2);
+
+      xymap_mark(xymap, p2->x, p2->y, WALL);
+      p2 = point_create(x1, y1);
+
+      // update_position_autopilot(snake, xymap, dest, p1->x, p1->y, maxX,
+      // maxY);
+      xymap_mark(xymap, p1->x, p1->y, WALL);
+      xymap_mark(xymap, p2->x, p2->y, WALL);
+      continue;
+    }
+
+    x1 = p1->x;
+    y1 = p1->y + 1;
+    x2 = p2->x;
+    y2 = p2->y + 1;
+    if ((y1 == y2) && is_valid(x1, y1, maxX, maxY) &&
+        !xymap_marked(xymap, x1, y1) && !xymap_marked(xymap, x2, y2)) {
+
+      stack_push(shortPath, p2);
+
+      xymap_mark(xymap, p2->x, p2->y, WALL);
+      p2 = point_create(x2, y2);
+      stack_push(shortPath, p2);
+
+      xymap_mark(xymap, p2->x, p2->y, WALL);
+      p2 = point_create(x1, y1);
+
+      // update_position_autopilot(snake, xymap, dest, p1->x, p1->y, maxX,
+      // maxY);
+      xymap_mark(xymap, p1->x, p1->y, WALL);
+      xymap_mark(xymap, p2->x, p2->y, WALL);
+      continue;
+    }
+
+    x1 = p1->x - 1;
+    y1 = p1->y;
+    x2 = p2->x - 1;
+    y2 = p2->y;
+    if ((x1 == x2) && is_valid(x1, y1, maxX, maxY) &&
+        !xymap_marked(xymap, x1, y1) && !xymap_marked(xymap, x2, y2)) {
+
+      stack_push(shortPath, p2);
+
+      xymap_mark(xymap, p2->x, p2->y, WALL);
+      p2 = point_create(x2, y2);
+      stack_push(shortPath, p2);
+
+      xymap_mark(xymap, p2->x, p2->y, WALL);
+      p2 = point_create(x1, y1);
+
+      // update_position_autopilot(snake, xymap, dest, p1->x, p1->y, maxX,
+      // maxY);
+      xymap_mark(xymap, p1->x, p1->y, WALL);
+      xymap_mark(xymap, p2->x, p2->y, WALL);
+      continue;
+    }
+
+    x1 = p1->x;
+    y1 = p1->y - 1;
+    x2 = p2->x;
+    y2 = p2->y - 1;
+    if ((y1 == y2) && is_valid(x1, y1, maxX, maxY) &&
+        !xymap_marked(xymap, x1, y1) && !xymap_marked(xymap, x2, y2)) {
+
+      stack_push(shortPath, p2);
+
+      xymap_mark(xymap, p2->x, p2->y, WALL);
+      p2 = point_create(x2, y2);
+      stack_push(shortPath, p2);
+
+      xymap_mark(xymap, p2->x, p2->y, WALL);
+      p2 = point_create(x1, y1);
+
+      // update_position_autopilot(snake, xymap, dest, p1->x, p1->y, maxX,
+      // maxY);
+      xymap_mark(xymap, p1->x, p1->y, WALL);
+      xymap_mark(xymap, p2->x, p2->y, WALL);
+      continue;
+    }
+
+    stack_push(path, p1);
+    xymap_mark(xymap, p1->x, p1->y, WALL);
+    // update_position_autopilot(snake, xymap, dest, p1->x, p1->y, maxX, maxY);
+    // stack_push(path, p2);
+    p1 = p2;
+
+    // p1 = stack_pop(shortPath);
+    p2 = stack_pop(shortPath);
+  }
+
+  stack_push(path, p2);
+  stack_free(shortPath);
+  path = stack_invert(path);
+  return path;
+}
+
+Stack *long_step(XYMap *xymap, Stack *shortPath, short teleport) {
+  Stack *path = stack_create();
+  int maxX = xymap->maxX;
+  int maxY = xymap->maxY;
+  Point *p1 = (Point *)stack_pop(shortPath);
+  Point *p2 = (Point *)stack_pop(shortPath);
+
+  int x1, x2, y1, y2;
+
+  if (p1->x == p2->x) {
+    x1 = x2 = p2->x + 1;
+    if (teleport && x1 >= maxX)
+      x1 = x2 = 0;
+
+    y1 = p1->y;
+    y2 = p2->y;
+    if (is_valid(x1, y1, maxX, maxY) && !xymap_marked(xymap, x1, y1) &&
+        !xymap_marked(xymap, x2, y2)) {
+      free(p2);
+      free(p1);
+      stack_push(path, point_create(x1, y1));
+      // stack_push(path, p1);
+      return path;
+    }
+    x1 = x2 = p2->x - 1;
+    if (teleport && x1 < 0)
+      x1 = x2 = maxX - 1;
+    y1 = p1->y;
+    y2 = p2->y;
+    if (is_valid(x1, y1, maxX, maxY) && !xymap_marked(xymap, x1, y1) &&
+        !xymap_marked(xymap, x2, y2)) {
+      free(p2);
+      free(p1);
+      stack_push(path, point_create(x1, y1));
+      // stack_push(path, p1);
+      return path;
+    }
+  }
+  if (p1->y == p2->y) {
+    x1 = p1->x;
+    x2 = p2->x;
+
+    y1 = y2 = p1->y + 1;
+    if (teleport && y1 >= maxY)
+      y1 = y2 = 0;
+
+    if (is_valid(x1, y1, maxX, maxY) && !xymap_marked(xymap, x1, y1) &&
+        !xymap_marked(xymap, x2, y2)) {
+      free(p2);
+      free(p1);
+      stack_push(path, point_create(x1, y1));
+      // stack_push(path, p1);
+      return path;
+    }
+    x1 = p1->x;
+    x2 = p2->x;
+
+    y1 = y2 = p1->y - 1;
+    if (teleport && y1 < 0)
+      y1 = y2 = maxY - 1;
+
+    if (is_valid(x1, y1, maxX, maxY) && !xymap_marked(xymap, x1, y1) &&
+        !xymap_marked(xymap, x2, y2)) {
+      free(p2);
+      free(p1);
+      stack_push(path, point_create(x1, y1));
+      // stack_push(path, p1);
+      return path;
+    }
+  }
+
+  stack_push(shortPath, p2);
+  stack_push(shortPath, p1);
+  stack_free(path);
+  return NULL;
+}
+
+Stack *try_hard(XYMap *xymap, Snake *snake, int maxX, int maxY, Point dest) {
+  Snake *sn = snake_copy(snake);
+  XYMap *map = xymap_copy(xymap);
+  Stack *path = a_star_search(map, sn, maxX, maxY, dest);
+  Stack *confirm = NULL;
+  Stack *path2 = NULL;
+  int safePathFound = 0;
+  if (path != NULL) {
+    path2 = copy_path(path);
+    while (path2->last != NULL) {
+
+      Point *p = (Point *)stack_pop(path2);
+      update_position_autopilot(sn, map, &dest, p->x, p->y, maxX, maxY);
+      free(p);
+    }
+    Point tail = {sn->tail->x, sn->tail->y};
+    confirm = a_star_search(map, sn, maxX, maxY, tail);
+    if (confirm != NULL) {
+      safePathFound = 1;
+      stack_free(confirm);
+    }
+    stack_free(path2);
+  }
+  xymap_free(map);
+  snake_free(sn);
+  if (safePathFound == 0) {
+    if (path != NULL)
+      stack_free(path);
+    Point tail = {snake->tail->x, snake->tail->y};
+    path2 = a_star_search(xymap, snake, maxX, maxY, tail);
+    // if (path2 != NULL) {
+    //   path = stack_create();
+    //   stack_push(path, stack_pop(path2));
+    //   stack_free(path2);
+    // }
+    if (path2 != NULL) {
+      Point *p = point_create(snake->head->x, snake->head->y);
+      stack_push(path2, p);
+      map = xymap_copy(xymap);
+      // sn = snake_copy(snake);
+      // xymap_print_log(map, snake->head->x, snake->head->y, tail.x,
+      // tail.y);
+      path = long_step(map, path2, snake->teleport);
+      // xymap_print_log(map, snake->head->x, snake->head->y, tail.x,
+      // tail.y);
+      xymap_free(map);
+      if (path != NULL) {
+        stack_free(path2);
+
+      } else {
+
+        free(stack_pop(path2));
+        path = stack_create();
+        stack_push(path, stack_pop(path2));
+        stack_free(path2);
+      }
+
+      // snake_free(sn);
+      // free(stack_pop(path));
+    }
+  }
   return path;
 }

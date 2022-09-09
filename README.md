@@ -45,13 +45,18 @@ Use the -h options to see the option details.
 
 ## Faq
 
-- Does the snake fills the entire screen/terminal with the autopilot?
-  No, at least not for now. I have plans to make the snake unkillable but unlike the current solution this will be resource intensive so it will have to be optional and not default.
-- Why the name "sssnake"?
+### Does the snake fills the entire screen/terminal with the autopilot?
+  If you use the "--try-hard" options the snake will get pretty close and sometimes it will fill the terminal.
+  (This is experimental and it does not work well in the screensaver mode because it refuses to die, but I'll fix that soon.)
+  I recommend you to run it in small terminals or limit the game field like this:
+  ```
+  sssnake -m screensaver -s 10 -x 10 -y 10 --try-hard
+  ```
+### Why the name "sssnake"?
    All the snake games in the terminal that I found use ascii characters and lets be honest, they are kinda ugly. 
    I try to do something more visually appealing, something "sexy" and it can play itself so it is "smart". 
    Smart and sexy snake => sssnake.
-- Why C?
+### Why C?
   I like simple and efficient things.
 
 

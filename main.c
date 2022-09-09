@@ -16,10 +16,12 @@
 
 enum styles { FANCY, FULL, ASCII, DOTS };
 enum modes { NORMAL, ARCADE, AUTOPILOT, SCREENSAVER };
+enum algorithm { BASIC, GREEDY };
 
 int direction = East;
 int cols, rows;
-int maxX, maxY;
+int maxX = 0;
+int maxY = 0;
 int minX = 0;
 int minY = 0;
 int c = East;
@@ -32,12 +34,13 @@ clock_t initTime;
 
 int selectedStyle = FANCY;
 int selectedMode = NORMAL;
-
+int selectedAlgorithm = BASIC;
 int speed = 200000;
 int junk = 0;
-int score = 0;
+short score = 0;
 short teleport = 0;
-
+// short tryHard = 1;
+short walls = 0;
 XYMap *blocksTaken = NULL;
 Snake *snake = NULL;
 Stack *path = NULL;
@@ -50,7 +53,7 @@ int snakeSize = 0;
 
 void init_options(int argc, char *argv[]);
 void init_game(void);
-void init_score();
+// void init_score();
 void draw_snake(Snake *snake);
 void draw_food(int x, int y);
 void draw_junk(List *junkList);
@@ -62,6 +65,8 @@ int get_time(); // usleep() makes this fuction useless
 int get_direction(int c);
 void print_help();
 
+int check_path();
+
 int main(int argc, char *argv[]) {
 
   init_options(argc, argv);
@@ -69,31 +74,46 @@ int main(int argc, char *argv[]) {
 
   curs_set(0);
 
+  if (maxX || maxY)
+    walls = 1;
   // The width of the game board is half of the columns because I use two
   // characters to represent one point ("██" or "▀ ")
-  maxX = cols / 2;
-  maxY = rows - score * 2;
-
+  if (maxX == 0)
+    maxX = cols / 2;
+  else
+    minX = (cols - maxX * 2) / 2;
+  if (maxY == 0)
+    maxY = rows - score * 2;
+  else
+    minY = (rows - maxY) / 2;
+  // maxX = 10;
+  // maxY = 10;
   if (selectedMode == ARCADE) {
-    if (cols < 64 || rows < 24) {
 
-      endwin();
-      printf("The arcade mode requires a minimum of 64 colums by 22 rows\n");
-      return 0;
-    }
     minX = (cols - 60) / 2;
     minY = (rows - 24) / 2;
     maxX = 30;
     maxY = 22;
-    draw_walls();
     score = 1;
+    walls = 1;
   } // else if (selectedMode == SCREENSAVER || selectedMode == AUTOPILOT)
-    // teleport = 0;
+  // teleport = 0;
 
+  if (cols < maxX * 2 || rows < maxY) {
+
+    endwin();
+    if (selectedMode == ARCADE)
+      printf("The arcade mode requires a minimum of 64 colums by 22 rows\n");
+    else
+      printf("Terminal is too small for the inputed dimensions");
+    return 0;
+  }
+
+  int maxBlocks = maxX * maxY;
+  int junkCount = 0;
   do { // This loop goes forever if the option "screensaver" is given.
 
-    if (score)
-      init_score();
+    draw_walls();
     //  Used to know where the body of the snake and the junk are,
     //  blocksTaken is just a matrix of 2x2 but It can change its dimesions
     //  dinamically if I ever decide to change  them by detecting changes in the
@@ -134,6 +154,7 @@ int main(int argc, char *argv[]) {
       }
 
       draw_junk(junkList);
+      junkCount = junkList->count;
     }
 
     rand_pos_food(&food, blocksTaken, maxX, maxY);
@@ -142,22 +163,22 @@ int main(int argc, char *argv[]) {
     while (1) {
       // Get a new path to follow if the autopilot or the screensaver are active
       if ((selectedMode == AUTOPILOT || selectedMode == SCREENSAVER) &&
-          (foodLastPoint.x != food.x || foodLastPoint.y != food.y)) {
-        Point src;
-        // TODO: the source point is the head of the snake, this parameter is
-        // redundant.
-        src.x = snake->head->x;
-        src.y = snake->head->y;
-        if (path != NULL) {
-          stack_free(path);
+          //(foodLastPoint.x != food.x || foodLastPoint.y != food.y)&&
+          !check_path()) {
+
+        switch (selectedAlgorithm) {
+        case BASIC:
+
+          path = a_star_search(blocksTaken, snake, maxX, maxY, food);
+
+          break;
+        case GREEDY:
+
+          path = try_hard(blocksTaken, snake, maxX, maxY, food);
+          break;
         }
 
-        path = a_star_search(blocksTaken, snake, maxX, maxY, src, food);
-        if (path != NULL) {
-
-          free(stack_pop(path));
-
-        } else if (snake->length > 1) {
+        if (path == NULL && snake->length > 1) {
           // if there is no path found then mark the direction to which the
           // snake was headed and can follow it to die
           if ((snake->head->x - (snake->head->next->x + 1)) == 0)
@@ -169,8 +190,6 @@ int main(int argc, char *argv[]) {
           if ((snake->head->y - (snake->head->next->y - 1)) == 0)
             direction = North;
         }
-        foodLastPoint.x = food.x;
-        foodLastPoint.y = food.y;
       }
 
       timeout(0);
@@ -202,13 +221,22 @@ int main(int argc, char *argv[]) {
       // fclose(fp);
 
       if (snake->head->x == food.x && snake->head->y == food.y) {
+        if (junkCount + snake->length < maxBlocks) {
+          rand_pos_food(&food, blocksTaken, maxX, maxY);
+        } else {
+          food.x = -1;
+          food.y = -1;
+        }
+        // snake->collision = 1;
 
-        rand_pos_food(&food, blocksTaken, maxX, maxY);
         if (selectedMode == ARCADE)
           speed = speed - 2000;
       }
-      if (snake->collision || c == 'q')
+      if (snake->collision || c == 'q') {
+        // xymap_print_log(blocksTaken, snake->head->x, snake->head->y,
+        // snake->tail->x, snake->tail->y);
         break;
+      }
       if (selectedMode == SCREENSAVER && c != ERR) {
         c = 'q';
         break;
@@ -263,12 +291,14 @@ int main(int argc, char *argv[]) {
   ▀▀▀▀▀▀▀
   This is the "sexy" part in the name sssnake!!!.
 
-  The cases 5 and 6 below were intended to build walls but for now are
-  unused.
 */
 
 void draw_point(int x, int y, short color, int type) {
-  move(y + minY, 2 * x + minX);
+  int ty = y + minY;
+  int tx = 2 * x + minX;
+  if (tx > cols || tx < 0 || ty > rows || ty < 0)
+    return;
+  move(ty, tx);
   attron(COLOR_PAIR(color));
   switch (type) {
   case 0:
@@ -360,6 +390,19 @@ void draw_point(int x, int y, short color, int type) {
   }
   attroff(COLOR_PAIR(color));
   // move(rows, cols);
+}
+
+int check_path() {
+
+  if (path != NULL) {
+    if (path->last == NULL) {
+      stack_free(path);
+      path = NULL;
+      return 0;
+    } else
+      return 1;
+  }
+  return 0;
 }
 
 int get_direction(int c) {
@@ -522,17 +565,23 @@ void draw_snake(Snake *snake) {
   }
 }
 void draw_food(int x, int y) {
-  switch (selectedStyle) {
-  case ASCII:
-    draw_point(x, y, 2, 11);
-    break;
-  case DOTS:
-  case FANCY:
-    draw_point(x, y, 2, 1);
-    break;
-  case FULL:
-    draw_point(x, y, 2, 0);
-    break;
+
+  if ((foodLastPoint.x != food.x || foodLastPoint.y != food.y) && food.x >= 0) {
+    switch (selectedStyle) {
+    case ASCII:
+      draw_point(x, y, 2, 11);
+      break;
+    case DOTS:
+    case FANCY:
+      draw_point(x, y, 2, 1);
+      break;
+    case FULL:
+      draw_point(x, y, 2, 0);
+      break;
+    }
+
+    foodLastPoint.x = food.x;
+    foodLastPoint.y = food.y;
   }
 }
 void draw_junk(List *junkList) {
@@ -576,7 +625,7 @@ void init_game(void) {
   init_pair(4, wallColor, -1);
   init_pair(5, snakeHeadColor, -1);
 }
-
+/*
 void init_score() {
 
   // move(minY + maxY -1, minX);
@@ -602,18 +651,28 @@ void init_score() {
 
   // initTime = clock();
 }
-
+*/
 void init_options(int argc, char *argv[]) {
   int op;
   int speedMult;
 
-  const struct option long_options[] = {
-      {"help", 0, NULL, 'h'},        {"speed", 1, NULL, 's'},
-      {"screensaver", 0, NULL, 'S'}, {"fancy", 0, NULL, 'f'},
-      {"junk", 1, NULL, 'j'},        {"autopilot", 0, NULL, 'a'},
-      {"ascii", 0, NULL, 'A'},       {"score", 0, NULL, 'z'},
-      {"look", 1, NULL, 'l'},        {"mode", 1, NULL, 'm'},
-      {"teleport", 0, NULL, 't'},    {NULL, 0, NULL, 0}};
+  const struct option long_options[] = {{"help", 0, NULL, 'h'},
+                                        {"speed", 1, NULL, 's'},
+                                        {"screensaver", 0, NULL, 'S'},
+                                        {"fancy", 0, NULL, 'f'},
+                                        {"junk", 1, NULL, 'j'},
+                                        {"autopilot", 0, NULL, 'a'},
+                                        {"ascii", 0, NULL, 'A'},
+                                        {"score", 0, NULL, 'z'},
+                                        {"look", 1, NULL, 'l'},
+                                        {"mode", 1, NULL, 'm'},
+                                        {"teleport", 0, NULL, 't'},
+                                        {"maxX", 1, NULL, 'x'},
+                                        {"maxY", 1, NULL, 'y'},
+                                        {"try-hard", 0, NULL, 1},
+
+                                        // {"try-hard", 0, NULL, 0},
+                                        {NULL, 0, NULL, 0}};
 
   if (argc == 1) {
     printf("You ran this program with no extra options,\n"
@@ -622,7 +681,7 @@ void init_options(int argc, char *argv[]) {
            "sssnake -h\n ");
   }
 
-  while ((op = getopt_long(argc, argv, ":aSfs:j:hAzl:m:t", long_options,
+  while ((op = getopt_long(argc, argv, ":aSfs:j:hAzl:m:tx:y:1", long_options,
                            NULL)) != -1) {
     switch (op) {
     case 'A':
@@ -694,6 +753,23 @@ void init_options(int argc, char *argv[]) {
     case 't':
       teleport = 1;
       break;
+    case 'x':
+      maxX = atoi(optarg);
+      if (maxX < 5) {
+        printf("Minimum value of x supported is 5. \n");
+        exit(0);
+      }
+      break;
+    case 'y':
+      maxY = atoi(optarg);
+      if (maxY < 5) {
+        printf("Minimum value of y supported is 5. \n");
+        exit(0);
+      }
+      break;
+    case 1:
+      selectedAlgorithm = GREEDY;
+      break;
     case 'h':
       print_help();
       exit(0);
@@ -729,48 +805,63 @@ void draw_walls() {
   switch (selectedStyle) {
   case DOTS:
   case FANCY:
-
-    for (int i = -1; i < maxX + 1; i++) {
-      draw_point(i, -1, 4, 2);
+    if (score || walls) {
+      for (int i = 0; i < maxX; i++)
+        draw_point(i, maxY, 4, 2);
     }
+    if (walls) {
+      for (int i = -1; i < maxX + 1; i++) {
+        draw_point(i, -1, 4, 2);
+      }
 
-    for (int i = 0; i < maxY; i++) {
-      draw_point(-1, i, 4, 16);
+      for (int i = 0; i < maxY; i++) {
+        draw_point(-1, i, 4, 16);
+      }
+
+      for (int i = -1; i < maxY + 1; i++) {
+        draw_point(maxX, i, 4, 16);
+      }
+
+      draw_point(-1, -1, 4, 17);
+      draw_point(-1, maxY, 4, 17);
     }
-
-    for (int i = -1; i < maxY + 1; i++) {
-      draw_point(maxX, i, 4, 16);
-    }
-
-    draw_point(-1, -1, 4, 17);
-    draw_point(-1, maxY, 4, 17);
-
     break;
   case FULL:
-    for (int i = -1; i < maxX + 1; i++) {
-      draw_point(i, -1, 4, 0);
+    if (score || walls) {
+      for (int i = 0; i < maxX; i++)
+        draw_point(i, maxY, 4, 0);
     }
+    if (walls) {
+      for (int i = -1; i < maxX + 1; i++) {
+        draw_point(i, -1, 4, 0);
+      }
 
-    for (int i = -1; i < maxY + 1; i++) {
-      draw_point(-1, i, 4, 0);
+      for (int i = -1; i < maxY + 1; i++) {
+        draw_point(-1, i, 4, 0);
+      }
+
+      for (int i = -1; i < maxY + 1; i++) {
+        draw_point(maxX, i, 4, 0);
+      }
     }
-
-    for (int i = -1; i < maxY + 1; i++) {
-      draw_point(maxX, i, 4, 0);
-    }
-
     break;
   case ASCII:
-    for (int i = -1; i < maxX + 1; i++) {
-      draw_point(i, -1, 4, 12);
+    if (score || walls) {
+      for (int i = 0; i < maxX; i++)
+        draw_point(i, maxY, 4, 12);
     }
+    if (walls) {
+      for (int i = -1; i < maxX + 1; i++) {
+        draw_point(i, -1, 4, 12);
+      }
 
-    for (int i = -1; i < maxY + 1; i++) {
-      draw_point(-1, i, 4, 14);
-    }
+      for (int i = -1; i < maxY + 1; i++) {
+        draw_point(-1, i, 4, 14);
+      }
 
-    for (int i = -1; i < maxY + 1; i++) {
-      draw_point(maxX, i, 4, 13);
+      for (int i = -1; i < maxY + 1; i++) {
+        draw_point(maxX, i, 4, 13);
+      }
     }
     break;
   }
@@ -799,13 +890,19 @@ void print_help() {
       //"no)\n"
       "  -j, --junk=N       Add random blocks of junk, levels from 1 to 5. "
       "(Default: 0 )\n"
+      "  -x, --maxX=N       Define the width of the game field.\n"
+      "  -y, --maxY=N       Define the height of the game field.\n"
+      "  -z, --score        Shows the size of the snake at any time.\n"
       //"  -f, --fancy        Add a fancy spacing between blocks. (Default:
       // no)\n"
       "  -t, --teleport     Teleport between borders.\n"
       "  -h, --help         Print help message. \n"
+      "  --try-hard         (Experimental!!) Makes the snake (almost) "
+      "unkillable in the autopilot/screensaver mode.\n"
       "Try to run something like this :\n"
       "sssnake -s 15 -j 5 -m screensaver\n"
-      "Warning!!! be careful using the screensaver mode and junk options "
+      "Warning!!! be careful using the screensaver mode and junk or try-hard "
+      "options "
       "at the same time on OLED screens.\nIf the snake is to much time alive "
       "the static dots of junk may burn your screen.\n"
       "Using the screensaver mode alone should be fine.\n"
