@@ -626,49 +626,25 @@ static Stack *stack_invert2(Stack *stack, XYMap *map) {
   stack_free(stack);
   return tmp;
 }
-static Stack *longest_path(XYMap *map, Stack *sPath, short teleport) {
+static Stack *longest_path(XYMap *map, Stack *sPath, int snakeSize,
+                           short teleport) {
   Stack *shortPath = copy_path(sPath);
   Stack *path = stack_create();
   Point *p1 = NULL;
   Point *p2 = NULL;
   int stepFound = 0;
+  int count = 0;
+  int maxExtend = snakeSize / 6;
   // Point *np1 = NULL;
   // Point *np2 = NULL;
   Point head = *(Point *)sPath->last->data;
   XYMap *xymap = xymap_copy(map);
   // xymap_print_log(xymap, head.x, head.y, -1, -1);
   while (shortPath->last) {
-    // p1 = stack_pop(shortPath);
-    // p2 = stack_pop(shortPath);
 
-    // if (p1 != NULL && p2 != NULL) {
-    // xymap_mark(xymap, p2->x, p2->y, WALL);
-    // xymap_mark(xymap, p1->x, p1->y, WALL);
-    stepFound = long_step(xymap, shortPath, teleport);
-    // xymap_mark(xymap, p1->x, p1->y, WALL);
-    // xymap_mark(xymap, p2->x, p2->y, WALL);
-    // xymap_unmark(xymap, p2->x, p2->y);
-    // xymap_print_log(xymap, head.x, head.y, -1, -1);
-    // }
-    /*
-        if (np1 != NULL) {
-          stack_push(shortPath, p2);
-          stack_push(shortPath, np2);
-          stack_push(shortPath, np1);
-          stack_push(shortPath, p1);
-          xymap_mark(xymap, p2->x, p2->y, WALL);
-          xymap_mark(xymap, p1->x, p1->y, WALL);
-          xymap_mark(xymap, np2->x, np2->y, WALL);
-          xymap_mark(xymap, np1->x, np1->y, WALL);
-          // xymap_mark(xymap, p2->x, p2->y, SBODY);
-          np1 = NULL;
-          np2 = NULL;
-          // xymap_unmark(xymap, p1->x, p1->y);
-          // xymap_unmark(xymap, p2->x, p2->y);
-          // xymap_mark(xymap, p2->x, p2->y, WALL);
-          xymap_print_log(xymap, head.x, head.y, -1, -1);
-        } else
-      */
+    if (count < maxExtend)
+      stepFound = long_step(xymap, shortPath, teleport);
+
     if (!stepFound) {
 
       p1 = stack_pop(shortPath);
@@ -679,7 +655,9 @@ static Stack *longest_path(XYMap *map, Stack *sPath, short teleport) {
       if (p2 != NULL) {
         stack_push(path, p2);
       }
-    }
+    } else
+      count++;
+    stepFound = 0;
   }
   stack_free(shortPath);
   xymap_free(xymap);
@@ -732,7 +710,7 @@ Stack *try_hard(XYMap *xymap, Snake *snake, int maxX, int maxY, Point dest,
       // map = xymap_copy(xymap);
 
       if (!mode)
-        path = longest_path(xymap, path2, snake->teleport);
+        path = longest_path(xymap, path2, snake->length, snake->teleport);
       else {
 
         map = xymap_copy(xymap);

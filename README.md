@@ -46,6 +46,7 @@ Use the -h options to see the option details.
 
 ### Definitely be added
   - Pause key.
+  - Increase and decrease speed keys.
   - An alternative/replacement to the A\* algorithm (probably IDA\* or BFS).
 ### May be added
   - Hamiltonian cycles.
