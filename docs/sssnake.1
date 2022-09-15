@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "SSSNAKE" "1" "July 17, 2022" "hello 0.1.0" "User Manual"
+.TH "SSSNAKE" "1" "September 15, 2022" "Ver. 0.2.0" "User Manual"
 .hy
 .SH NAME
 .PP
@@ -25,36 +25,74 @@ sssnake - Classic snake game on the terminal that can run in autopilot.
 .SH DESCRIPTION
 .PP
 \f[B]sssnake\f[R] is the classic snake game written in c to run in the
-terminal capable to run in autopilot with a simple A* implementation.
+terminal capable to run in autopilot.
 .SH OPTIONS
 .TP
-\f[B]-a, \[en]autopilot\f[R]
-The game plays itself.
+\f[B]-m MODE, \[en]mode=MODE\f[R]
+Mode in which the program will run.
+MODE can be:
+.RS
+.IP \[bu] 2
+normal (Default mode)
+.IP \[bu] 2
+arcade (A board with dimensions and speed increase when the snake eats )
+.IP \[bu] 2
+autopilot (The game plays itself)
+.IP \[bu] 2
+screensaver (Same as autopilot but the game restarts every time the
+snake dies)
+.RE
 .TP
-\f[B]-A, \[en]ascii\f[R]
-Use ascii characters.
+\f[B]-l STYLE, \[en]look=STYLE\f[R]
+Style how the snake, food, walls, and junk look.
+STYLE can be:
+.RS
+.IP \[bu] 2
+fancy (Default mode )
+.IP \[bu] 2
+full (The snake is made out of full blocks)
+.IP \[bu] 2
+ascii (Every thing is made out of ascii characters)
+.IP \[bu] 2
+dots (The snake is made out of little square dots)
+.RE
 .TP
 \f[B]-s NUMBER, \[en]speed=NUMBER\f[R]
 Speed of the game, from 1 to 20.
 (Default: 1 ).
 .TP
-\f[B]-S, \[en]screensaver\f[R]
-Autopilot, but it restarts when it dies.
-(Default: no).
+\f[B]-x DIMENSION, \[en]maxX=DIMENSION\f[R]
+Define the width of the board (minimum value of DIMENSION is 5).
+.TP
+\f[B]-y DIMENSION, \[en]maxY=DIMENSION\f[R]
+Define the height of the board (minimum value of DIMENSION is 5).
 .TP
 \f[B]-j NUMBER, \[en]junk=NUMBER\f[R]
-Add random blocks of junk, levels from 1 to 5.
+Add random blocks of junk, levels from 1 to 10.
 (Default: 0 ).
 .TP
-\f[B]-f, \[en]fancy\f[R]
-Add a fancy spacing between blocks.
-(Default: no).
+\f[B]-z, \[en]score\f[R]
+Shows the size of the snake at any time.
+.TP
+\f[B]-t, \[en]teleport\f[R]
+Allows the snake to teleport between borders.
+.TP
+\f[B]\[en]try-hard N\f[R]
+Makes the snake (almost) unkillable in the autopilot/screensaver mode.
+For now there are two options (algorithms):
+.RS
+.IP \[bu] 2
+\[lq]\[en]try-hard 1\[rq] is cpu efficient.
+.IP \[bu] 2
+\[lq]\[en]try-hard 2\[rq] uses more cpu but it reaches the food faster
+and produces a cleaner board.
+.RE
 .TP
 \f[B]-h, \[en]help\f[R]
 Print help message..
 .SH CONTROLS
 .TP
-\f[B]wasd, hjkl\f[R]
+\f[B]wasd, hjkl, up down left right\f[R]
 Basic directional controls.
 .TP
 \f[B]q\f[R]

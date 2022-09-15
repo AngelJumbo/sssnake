@@ -2,8 +2,8 @@
 title: SSSNAKE
 section: 1
 header: User Manual
-footer: hello 0.1.0
-date: July 17, 2022
+footer: Ver. 0.2.0
+date: September 15, 2022
 ---
 # NAME
 sssnake - Classic snake game on the terminal that can run in autopilot.
@@ -12,32 +12,54 @@ sssnake - Classic snake game on the terminal that can run in autopilot.
 **sssnake** [*OPTION*]...
 
 # DESCRIPTION
-**sssnake** is the classic snake game written in c to run in the terminal capable to run in autopilot with a simple A\* implementation.
+**sssnake** is the classic snake game written in c to run in the terminal capable to run in autopilot.
 
 # OPTIONS
-**-a, --autopilot** 
-: The game plays itself.
+**-m MODE, --mode=MODE** 
+: Mode in which the program will run. MODE can be:
 
-**-A, --ascii** 
-: Use ascii characters.
+    * normal (Default mode)
+    * arcade (A board with dimensions and speed increase when the snake eats )
+    * autopilot (The game plays itself)
+    * screensaver (Same as autopilot but the game restarts every time the snake dies)
+
+**-l STYLE, --look=STYLE** 
+: Style how the snake, food, walls, and junk look. STYLE can be:
+
+    * fancy (Default mode )
+    * full (The snake is made out of full blocks)
+    * ascii (Every thing is made out of ascii characters)
+    * dots (The snake is made out of little square dots)
 
 **-s NUMBER, --speed=NUMBER** 
 : Speed of the game, from 1 to 20. (Default: 1 ).
 
-**-S, --screensaver** 
-: Autopilot, but it restarts when it dies. (Default: no).
+**-x DIMENSION, --maxX=DIMENSION** 
+: Define the width of the board (minimum value of DIMENSION is 5).
+
+**-y DIMENSION, --maxY=DIMENSION** 
+: Define the height of the board (minimum value of DIMENSION is 5).
 
 **-j NUMBER, --junk=NUMBER** 
-: Add random blocks of junk, levels from 1 to 5. (Default: 0 ).
+: Add random blocks of junk, levels from 1 to 10. (Default: 0 ).
 
-**-f, --fancy** 
-: Add a fancy spacing between blocks. (Default: no).
+**-z, --score** 
+: Shows the size of the snake at any time.
+
+**-t, --teleport** 
+: Allows the snake to teleport between borders.
+
+**--try-hard N** 
+:  Makes the snake (almost) unkillable in the autopilot/screensaver mode. For now there are two options (algorithms):
+
+    * "--try-hard 1" is cpu efficient.
+    * "--try-hard 2" uses more cpu but it reaches the food faster and produces a cleaner board.
 
 **-h, --help** 
 : Print help message..
 
 # CONTROLS
-**wasd, hjkl**
+**wasd, hjkl, up down left right**
 : Basic directional controls.
 
 **q**
