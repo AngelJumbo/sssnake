@@ -681,7 +681,9 @@ static Stack *longest_path(XYMap *map, Stack *sPath, short teleport) {
       }
     }
   }
-  path = stack_invert2(path, xymap);
+  stack_free(shortPath);
+  xymap_free(xymap);
+  path = stack_invert(path);
   // xymap_print_log(xymap, head.x, head.y, -1, -1);
   return path;
 }
