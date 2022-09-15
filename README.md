@@ -1,9 +1,9 @@
 # sssnake
-The classic snake game for the terminal that can plays itself and be use like a screensaver.
+The classic snake game for the terminal that can play itself and be use like a screensaver.
 [![asciicast](https://asciinema.org/a/477685.svg)](https://asciinema.org/a/477685)
 ## Installation
 
-You need ncurses specifically ncursesw which is included in these packages:
+You need ncurses :
 
 ```
 apt install libncurses-dev       #Debian/Ubuntu/Mint
@@ -39,9 +39,17 @@ or
 sssnake -l full -m screensaver -s 15 -j 5
 
 ```
-press Q to quit.
 
 Use the -h options to see the option details.
+
+## Planned features 
+
+### Definitely be added
+  - Pause key.
+  - An alternative/replacement to the A\* algorithm (probably IDA\* or BFS).
+### May be added
+  - Hamiltonian cycles.
+  - Custom colors.
 
 ## Faq
 
@@ -50,7 +58,7 @@ Use the -h options to see the option details.
   (This is experimental and it does not work well in the screensaver mode because it refuses to die, but I'll fix that soon.)
   I recommend you to run it in small terminals or limit the game field like this:
   ```
-  sssnake -m screensaver -s 10 -x 10 -y 10 --try-hard
+  sssnake -m screensaver -s 10 -x 10 -y 10 --try-hard 1
   ```
 ### Why the name "sssnake"?
    All the snake games in the terminal that I found use ascii characters and lets be honest, they are kinda ugly. 

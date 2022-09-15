@@ -20,6 +20,7 @@ typedef struct Snake_ {
   int grow;
   int collision;
   short teleport;
+  short onWayToFood;
 } Snake;
 
 typedef struct point {

@@ -16,7 +16,7 @@
 
 enum styles { FANCY, FULL, ASCII, DOTS };
 enum modes { NORMAL, ARCADE, AUTOPILOT, SCREENSAVER };
-enum algorithm { BASIC, GREEDY };
+enum algorithm { BASIC, GREEDY1, GREEDY2 };
 
 int direction = East;
 int cols, rows;
@@ -63,6 +63,7 @@ void draw_walls();
 
 int get_time(); // usleep() makes this fuction useless
 int get_direction(int c);
+int check_junk_pos(int x, int y);
 void print_help();
 
 int check_path();
@@ -120,6 +121,7 @@ int main(int argc, char *argv[]) {
     //  dimensions of the terminal.
     blocksTaken = xymap_create(maxX, maxY);
     snake = snake_create(maxX / 2, maxY / 2, direction, teleport);
+    xymap_mark(blocksTaken, snake->head->x, snake->head->y, SBODY);
     // A snake with a size of just one cell may break somethings
     // so just grow it by one at the start.
     snake->grow = 1;
@@ -143,12 +145,9 @@ int main(int argc, char *argv[]) {
         int jx, jy;
         do {
 
-          jx = rand() % maxX;
-          jy = rand() % maxY;
-        } while (
-            xymap_marked(blocksTaken, jx, jy) ||
-            (jy == maxY / 2 &&
-             (jx > maxX / 4 && jy < maxX * 3 / 4))); // avoid snake spawn blocks
+          jx = (rand() % (maxX - 2)) + 1;
+          jy = (rand() % (maxY - 2)) + 1;
+        } while (!check_junk_pos(jx, jy)); // avoid snake spawn blocks
         xymap_mark(blocksTaken, jx, jy, WALL);
         list_append(junkList, point_create(jx, jy));
       }
@@ -169,12 +168,14 @@ int main(int argc, char *argv[]) {
         switch (selectedAlgorithm) {
         case BASIC:
 
-          path = a_star_search(blocksTaken, snake, maxX, maxY, food);
+          path = a_star_search(blocksTaken, snake, maxX, maxY, food, 1);
 
           break;
-        case GREEDY:
-
-          path = try_hard(blocksTaken, snake, maxX, maxY, food);
+        case GREEDY1:
+          path = try_hard(blocksTaken, snake, maxX, maxY, food, 0);
+          break;
+        case GREEDY2:
+          path = try_hard(blocksTaken, snake, maxX, maxY, food, 1);
           break;
         }
 
@@ -197,6 +198,13 @@ int main(int argc, char *argv[]) {
       // move(rows, cols);
 
       if (path != NULL) {
+
+        // if (selectedAlgorithm == GREEDY && !snake->onWayToFood) {
+        //   Point *p = point_create(snake->head->x, snake->head->y);
+        //   stack_push(path, p);
+        //   long_step(blocksTaken, path, snake->teleport);
+        //   free(stack_pop(path));
+        // }
 
         Point *point = stack_pop(path);
         update_position_autopilot(snake, blocksTaken, &food, point->x, point->y,
@@ -227,7 +235,7 @@ int main(int argc, char *argv[]) {
           food.x = -1;
           food.y = -1;
         }
-        // snake->collision = 1;
+        // snake->onWayToFood = 0;
 
         if (selectedMode == ARCADE)
           speed = speed - 2000;
@@ -404,7 +412,37 @@ int check_path() {
   }
   return 0;
 }
+int check_junk_pos(int x, int y) {
 
+  if (xymap_marked(blocksTaken, x, y) ||
+      (y == maxY / 2 && (x > maxX / 4 && y < maxX * 3 / 4)))
+    return 0;
+  int count = 0;
+  // avoid this shape:
+  //
+  //    ▀   ▀
+  //      ▀
+
+  for (int i = -1; i < 2; i += 2) {
+
+    for (int j = -1; j < 2; j += 2) {
+      if (xymap_marked(blocksTaken, x + i, y + j)) {
+
+        count++;
+
+        if (xymap_marked(blocksTaken, x + i * 2, y)) {
+          count++;
+        }
+        if (xymap_marked(blocksTaken, x, y + j * 2)) {
+          count++;
+        }
+      }
+    }
+  }
+  if (count >= 2)
+    return 0;
+  return 1;
+}
 int get_direction(int c) {
   switch (c) {
   case KEY_UP:
@@ -625,6 +663,7 @@ void init_game(void) {
   init_pair(4, wallColor, -1);
   init_pair(5, snakeHeadColor, -1);
 }
+
 /*
 void init_score() {
 
@@ -669,7 +708,7 @@ void init_options(int argc, char *argv[]) {
                                         {"teleport", 0, NULL, 't'},
                                         {"maxX", 1, NULL, 'x'},
                                         {"maxY", 1, NULL, 'y'},
-                                        {"try-hard", 0, NULL, 1},
+                                        {"try-hard", 1, NULL, 1},
 
                                         // {"try-hard", 0, NULL, 0},
                                         {NULL, 0, NULL, 0}};
@@ -681,7 +720,7 @@ void init_options(int argc, char *argv[]) {
            "sssnake -h\n ");
   }
 
-  while ((op = getopt_long(argc, argv, ":aSfs:j:hAzl:m:tx:y:1", long_options,
+  while ((op = getopt_long(argc, argv, ":aSfs:j:hAzl:m:tx:y:1:", long_options,
                            NULL)) != -1) {
     switch (op) {
     case 'A':
@@ -738,7 +777,7 @@ void init_options(int argc, char *argv[]) {
 
     case 'j':
       junk = atoi(optarg);
-      if (junk <= 0 || junk > 5)
+      if (junk <= 0 || junk > 10)
         junk = 0;
       break;
     case 's':
@@ -768,7 +807,16 @@ void init_options(int argc, char *argv[]) {
       }
       break;
     case 1:
-      selectedAlgorithm = GREEDY;
+
+      selectedAlgorithm = atoi(optarg);
+      if (selectedAlgorithm > 2 || selectedAlgorithm < 1) {
+        printf("Invalid algorithm!! \n");
+        printf("Available algorithms:\n");
+        printf("try-hard 1 for greedy 1.\n");
+        printf("try-hard 2 for greedy 2.\n");
+
+        exit(0);
+      }
       break;
     case 'h':
       print_help();
@@ -890,22 +938,26 @@ void print_help() {
       //"no)\n"
       "  -j, --junk=N       Add random blocks of junk, levels from 1 to 5. "
       "(Default: 0 )\n"
-      "  -x, --maxX=N       Define the width of the game field.\n"
-      "  -y, --maxY=N       Define the height of the game field.\n"
+      "  -x N, --maxX=N     Define the width of the game field.\n"
+      "  -y N, --maxY=N     Define the height of the game field.\n"
       "  -z, --score        Shows the size of the snake at any time.\n"
       //"  -f, --fancy        Add a fancy spacing between blocks. (Default:
       // no)\n"
       "  -t, --teleport     Teleport between borders.\n"
       "  -h, --help         Print help message. \n"
-      "  --try-hard         (Experimental!!) Makes the snake (almost) "
-      "unkillable in the autopilot/screensaver mode.\n"
+      "  --try-hard N       Makes the snake (almost) unkillable in the "
+      "autopilot/screensaver mode\n."
+
+      "                     For now there are two options (algorithms):\n"
+      "                     \"--try-hard 1\" is cpu efficient.\n"
+      "                     \"--try-hard 2\" uses more cpu but it reaches the "
+      "food faster and produces a cleaner board.\n"
+      "                     Neither of the two works well with junk in the "
+      "board.\n"
+
       "Try to run something like this :\n"
       "sssnake -s 15 -j 5 -m screensaver\n"
-      "Warning!!! be careful using the screensaver mode and junk or try-hard "
-      "options "
-      "at the same time on OLED screens.\nIf the snake is to much time alive "
-      "the static dots of junk may burn your screen.\n"
-      "Using the screensaver mode alone should be fine.\n"
+
       "For bugs or new features go to : "
       "https://github.com/AngelJumbo/sssnake\n");
 }

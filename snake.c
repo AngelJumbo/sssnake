@@ -25,6 +25,7 @@ Snake *snake_create(int x, int y, int direction, short teleport) {
   tmp->grow = 1;
   tmp->collision = 0;
   tmp->teleport = teleport;
+  tmp->onWayToFood = 0;
   return tmp;
 }
 

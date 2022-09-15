@@ -73,10 +73,13 @@ void xymap_print_log(XYMap *map, int headx, int heady, int tailx, int taily) {
     for (int i = 0; i < map->maxX; i++) {
       if (map->arr[i + map->maxX * j] != 0) {
         if (i == headx && j == heady) {
-          fprintf(fp, "h ");
+          fprintf(fp, "@ ");
         } else if (i == tailx && j == taily) {
           fprintf(fp, "t ");
+        } else if (map->arr[i + map->maxX * j] == 2) {
+          fprintf(fp, "o ");
         } else {
+
           fprintf(fp, "%i ", map->arr[i + map->maxX * j]);
         }
       } else {
