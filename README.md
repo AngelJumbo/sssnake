@@ -25,7 +25,7 @@ make install
 ## Usage
 
 You can see the manpage or use the -h option to see the details of what this program can do.
-So instead would like to show you a few things that I like to run.
+So instead I would like to show you a few things that I like to run.
 
 ```
 sssnake -m autopilot -s 15 -j 10
