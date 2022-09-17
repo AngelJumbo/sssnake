@@ -31,20 +31,20 @@ So instead would like to show you a few things that I like to run.
 sssnake -m autopilot -s 15 -j 10
 ```
 
-[![Watch the video](https://img.youtube.com/vi/qNDcn5tdyno/maxresdefault.jpg)](https://youtu.be/qNDcn5tdyno)
+[![Watch the video](https://img.youtube.com/vi/qNDcn5tdyno/mqdefault.jpg)](https://youtu.be/qNDcn5tdyno)
 
 ```
 sssnake -m autopilot -s 15 -z -t -l ascii
 ```
 
-[![Watch the video](https://img.youtube.com/vi/XTS2CXHzBjA/maxresdefault.jpg)](https://youtu.be/XTS2CXHzBjA)
+[![Watch the video](https://img.youtube.com/vi/XTS2CXHzBjA/mqdefault.jpg)](https://youtu.be/XTS2CXHzBjA)
 
 
 ```
 sssnake -m screensaver -s 15 -z -x 8 -y 8 --try-hard 1
 ```
 
-[![Watch the video](https://img.youtube.com/vi/oh4CK8wPU-4/maxresdefault.jpg)](https://youtu.be/oh4CK8wPU-4)
+[![Watch the video](https://img.youtube.com/vi/oh4CK8wPU-4/mqdefault.jpg)](https://youtu.be/oh4CK8wPU-4)
 
 
 
