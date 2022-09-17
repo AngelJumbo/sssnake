@@ -1,5 +1,5 @@
 # sssnake
-The classic snake game for the terminal that can play itself and be use like a screensaver.
+The classic snake game for the terminal that can play itself and be used like a screensaver.
 [![asciicast](https://asciinema.org/a/477685.svg)](https://asciinema.org/a/477685)
 ## Installation
 
@@ -24,23 +24,29 @@ make install
 
 ## Usage
 
-(The options are different than the options on the released versions. If you installed this program from the released page please check "sssnake -h")
-
-By default it will run like a normal snake game that you can control with wasd, hjkl(vi keys) or the arrow keys.
-But try this
+You can see the manpage or use the -h option to see the details of what this program can do.
+So instead would like to show you a few things that I like to run.
 
 ```
-sssnake -m screensaver -s 15
+sssnake -m autopilot -s 15 -j 10
 ```
 
-or
+[![Watch the video](https://img.youtube.com/vi/qNDcn5tdyno/maxresdefault.jpg)](https://youtu.be/qNDcn5tdyno)
 
 ```
-sssnake -l full -m screensaver -s 15 -j 5
-
+sssnake -m autopilot -s 15 -z -t -l ascii
 ```
 
-Use the -h options to see the option details.
+[![Watch the video](https://img.youtube.com/vi/XTS2CXHzBjA/maxresdefault.jpg)](https://youtu.be/XTS2CXHzBjA)
+
+
+```
+sssnake -m screensaver -s 15 -z -x 8 -y 8 --try-hard 1
+```
+
+[![Watch the video](https://img.youtube.com/vi/oh4CK8wPU-4/maxresdefault.jpg)](https://youtu.be/oh4CK8wPU-4)
+
+
 
 ## Planned features 
 
@@ -56,11 +62,17 @@ Use the -h options to see the option details.
 
 ### Does the snake fills the entire screen/terminal with the autopilot?
   If you use the "--try-hard" options the snake will get pretty close and sometimes it will fill the terminal.
-  (This is experimental and it does not work well in the screensaver mode because it refuses to die, but I'll fix that soon.)
-  I recommend you to run it in small terminals or limit the game field like this:
+  I implemented two algorithms "--try-hard 1" is good for big terminals/boards. You can test it running:
   ```
-  sssnake -m screensaver -s 10 -x 10 -y 10 --try-hard 1
+  sssnake -m autopilot -s 15 --try-hard 1
   ```
+
+  "--try-hard 2" uses more cpu and it can get laggy with big boards but it has more chances to fill the board. Try:
+  ```
+  sssnake -m autopilot -s 10 -x 10 -y 10 --try-hard 2
+  ```
+  Neither of the two algorithms work well with junk.
+
 ### Why the name "sssnake"?
    All the snake games in the terminal that I found use ascii characters and lets be honest, they are kinda ugly. 
    I try to do something more visually appealing, something "sexy" and it can play itself so it is "smart". 
@@ -74,3 +86,4 @@ Use the -h options to see the option details.
 
 - Min heap implementation base on Martin Broadhurst min-heap ( http://www.martinbroadhurst.com/min-heap-in-c.html ) 
 - A\* base on (https://www.geeksforgeeks.org/a-search-algorithm/)
+- The two "--try-hard" algorithms that I implemented were inspired by chuyangliu's greedy solver ( https://github.com/chuyangliu/snake/blob/master/docs/algorithms.md#greedy-solver )

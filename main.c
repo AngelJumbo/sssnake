@@ -51,6 +51,10 @@ Point foodLastPoint;
 Point tailLastPoint;
 int snakeSize = 0;
 
+Point controlLastPoint = {-1, -1};
+int controlSnakeSize = 0;
+int loops = 0;
+
 void init_options(int argc, char *argv[]);
 void init_game(void);
 // void init_score();
@@ -61,7 +65,6 @@ void draw_point(int x, int y, short color, int type);
 void draw_score(Snake *snake);
 void draw_walls();
 
-int get_time(); // usleep() makes this fuction useless
 int get_direction(int c);
 int check_junk_pos(int x, int y);
 void print_help();
@@ -162,7 +165,6 @@ int main(int argc, char *argv[]) {
     while (1) {
       // Get a new path to follow if the autopilot or the screensaver are active
       if ((selectedMode == AUTOPILOT || selectedMode == SCREENSAVER) &&
-          //(foodLastPoint.x != food.x || foodLastPoint.y != food.y)&&
           !check_path()) {
 
         switch (selectedAlgorithm) {
@@ -199,13 +201,6 @@ int main(int argc, char *argv[]) {
 
       if (path != NULL) {
 
-        // if (selectedAlgorithm == GREEDY && !snake->onWayToFood) {
-        //   Point *p = point_create(snake->head->x, snake->head->y);
-        //   stack_push(path, p);
-        //   long_step(blocksTaken, path, snake->teleport);
-        //   free(stack_pop(path));
-        // }
-
         Point *point = stack_pop(path);
         update_position_autopilot(snake, blocksTaken, &food, point->x, point->y,
                                   maxX, maxY);
@@ -218,24 +213,30 @@ int main(int argc, char *argv[]) {
         update_position(snake, blocksTaken, &food, direction, maxX, maxY);
       }
 
-      // ignore this, is just a debug block
-      // xymap_print_log(blocksTaken, snake->head->x, snake->head->y,
-      //                 snake->tail->x, snake->tail->y);
-
-      // FILE *fp;
-      // fp = fopen("log.txt", "a+");
-
-      // fprintf(fp, "Food (%i,%i) \n", food.x, food.y);
-      // fclose(fp);
-
+      if (selectedMode == SCREENSAVER) {
+        if (controlLastPoint.x == snake->head->x &&
+            controlLastPoint.y == snake->head->y &&
+            snake->length == controlSnakeSize) {
+          loops++;
+          if (loops >= 2) {
+            stack_free(path);
+            path = a_star_search(blocksTaken, snake, maxX, maxY, food, 1);
+          }
+        }
+        if (snake->length == maxBlocks)
+          break;
+      }
       if (snake->head->x == food.x && snake->head->y == food.y) {
         if (junkCount + snake->length < maxBlocks) {
+          controlLastPoint = food;
+          controlSnakeSize = snake->length;
+          loops = 0;
           rand_pos_food(&food, blocksTaken, maxX, maxY);
+
         } else {
           food.x = -1;
           food.y = -1;
         }
-        // snake->onWayToFood = 0;
 
         if (selectedMode == ARCADE)
           speed = speed - 2000;
@@ -289,8 +290,8 @@ int main(int argc, char *argv[]) {
   2         | ▀ ▀             | ▀▀▀
   3         | ▀ ▀ ▀           | ▀▀▀▀▀
 
-  so from this two characters ▀ and █ we have this extra combination to fill the
-  gaps in the snake body ▀▀ and █▀
+  so from this two characters ▀ and █ we have this two extra combination to fill
+  the gaps in the snake body ▀▀ and █▀
 
   And like this we can have a really cool snake.
 
@@ -369,31 +370,9 @@ void draw_point(int x, int y, short color, int type) {
     addwstr(L"▚▀");
     break;
   case 18:
-    addwstr(L"━━");
-    break;
-  case 19:
-    addwstr(L"┃ ");
-    break;
-  case 20:
-    addwstr(L"┛ ");
-    break;
-  case 21:
-    addwstr(L"┓ ");
-    break;
-  case 22:
-    addwstr(L"┏━");
-    break;
-  case 23:
-    addwstr(L"┗━");
-    break;
-  case 24:
-    addwstr(L"╹ ");
-    break;
-  case 25:
-    addwstr(L"━ ");
-    break;
-  case 26:
-    addwstr(L"▀━");
+    attron(A_BOLD);
+    addstr(". ");
+    attroff(A_BOLD);
     break;
   }
   attroff(COLOR_PAIR(color));
@@ -502,6 +481,8 @@ void draw_snake(Snake *snake) {
     draw_point(sPart->x, sPart->y, 0, 9);
     // draw the second section of the body
     draw_point(sPart->next->x, sPart->next->y, 0, 8);
+    // draw tail
+    draw_point(sPart2->x, sPart2->y, 0, 18);
     break;
   case FANCY:
     // draw the head
@@ -831,11 +812,6 @@ void init_options(int argc, char *argv[]) {
   }
 }
 
-int get_time() {
-  clock_t difference = clock() - initTime;
-  return difference * 1000 / CLOCKS_PER_SEC;
-}
-
 void draw_score(Snake *snake) {
 
   move(minY + maxY + 1, minX);
@@ -852,6 +828,7 @@ void draw_score(Snake *snake) {
 void draw_walls() {
   switch (selectedStyle) {
   case DOTS:
+  case FULL:
   case FANCY:
     if (score || walls) {
       for (int i = 0; i < maxX; i++)
@@ -873,26 +850,26 @@ void draw_walls() {
       draw_point(-1, -1, 4, 17);
       draw_point(-1, maxY, 4, 17);
     }
-    break;
-  case FULL:
-    if (score || walls) {
-      for (int i = 0; i < maxX; i++)
-        draw_point(i, maxY, 4, 0);
-    }
-    if (walls) {
-      for (int i = -1; i < maxX + 1; i++) {
-        draw_point(i, -1, 4, 0);
-      }
+    break; /*
+   case FULL:
+     if (score || walls) {
+       for (int i = 0; i < maxX; i++)
+         draw_point(i, maxY, 4, 0);
+     }
+     if (walls) {
+       for (int i = -1; i < maxX + 1; i++) {
+         draw_point(i, -1, 4, 0);
+       }
 
-      for (int i = -1; i < maxY + 1; i++) {
-        draw_point(-1, i, 4, 0);
-      }
+       for (int i = -1; i < maxY + 1; i++) {
+         draw_point(-1, i, 4, 0);
+       }
 
-      for (int i = -1; i < maxY + 1; i++) {
-        draw_point(maxX, i, 4, 0);
-      }
-    }
-    break;
+       for (int i = -1; i < maxY + 1; i++) {
+         draw_point(maxX, i, 4, 0);
+       }
+     }
+     break;*/
   case ASCII:
     if (score || walls) {
       for (int i = 0; i < maxX; i++)
@@ -949,8 +926,9 @@ void print_help() {
       "autopilot/screensaver mode\n."
 
       "                     For now there are two options (algorithms):\n"
-      "                     \"--try-hard 1\" is cpu efficient.\n"
-      "                     \"--try-hard 2\" uses more cpu but it reaches the "
+      "                     \"--try-hard 1\" is cpu efficient, good for big "
+      "boards.\n"
+      "                     \"--try-hard 2\" uses more cpu, it reaches the "
       "food faster and produces a cleaner board.\n"
       "                     Neither of the two works well with junk in the "
       "board.\n"

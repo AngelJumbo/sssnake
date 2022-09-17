@@ -6,6 +6,11 @@ sssnake: main.c autopilot.c xymap.c essentials.c snake.c
 #autopilot.o: autopilot.c xymap.c essentials.c snake.c 
 #	gcc -c autopilot.c xymap.c essentials.c snake.c
 
+
+.PHONY: genman
+genman:
+	pandoc ./docs/sssnake.1.md -s -t man -o ./docs/sssnake.1
+
 .PHONY: clean
 clean:
 	$(RM) sssnake

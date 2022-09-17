@@ -46,6 +46,8 @@ void update_position_autopilot(Snake *snake, XYMap *blocksTaken, Point *food,
 void check_collision(Snake *sn, XYMap *blocksTaken, int x, int y, int maxX,
                      int maxY);
 
+int snake_cmp(Snake *sn1, Snake *sn2);
+
 void rand_pos_food(Point *food, XYMap *blocksTaken, int maxX, int maxY);
 Point *point_create(int x, int y);
 #endif

@@ -214,3 +214,16 @@ Point *point_create(int x, int y) {
   tmp->y = y;
   return tmp;
 }
+
+int snake_cmp(Snake *sn1, Snake *sn2) {
+  if (sn1->length != sn2->length)
+    return 0;
+  SnakePart *snp1;
+  SnakePart *snp2;
+  for (snp1 = sn1->head, snp2 = sn2->head; snp1 != NULL;
+       snp1 = snp1->next, snp2 = snp2->next)
+    if (snp1->x != snp2->x || snp1->y != snp2->y)
+      return 0;
+
+  return 1;
+}

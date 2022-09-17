@@ -52,8 +52,8 @@ sssnake - Classic snake game on the terminal that can run in autopilot.
 **--try-hard N** 
 :  Makes the snake (almost) unkillable in the autopilot/screensaver mode. For now there are two options (algorithms):
 
-    * "--try-hard 1" is cpu efficient.
-    * "--try-hard 2" uses more cpu but it reaches the food faster and produces a cleaner board.
+    * "--try-hard 1" is cpu efficient, good for big boards.
+    * "--try-hard 2" uses more cpu, it reaches the food faster and produces a cleaner board.
 
 **-h, --help** 
 : Print help message..
