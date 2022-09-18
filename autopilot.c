@@ -626,24 +626,26 @@ static Stack *stack_invert2(Stack *stack, XYMap *map) {
   stack_free(stack);
   return tmp;
 }
-static Stack *longest_path(XYMap *map, Stack *sPath, int snakeSize,
-                           short teleport) {
+static Stack *longer_path(XYMap *map, Stack *sPath, short teleport) {
   Stack *shortPath = copy_path(sPath);
   Stack *path = stack_create();
   Point *p1 = NULL;
   Point *p2 = NULL;
   int stepFound = 0;
   int count = 0;
-  int maxExtend = snakeSize / 6;
+  int maxExtend = 5;
   // Point *np1 = NULL;
   // Point *np2 = NULL;
-  Point head = *(Point *)sPath->last->data;
+  // Point head = *(Point *)sPath->last->data;
   XYMap *xymap = xymap_copy(map);
   // xymap_print_log(xymap, head.x, head.y, -1, -1);
   while (shortPath->last) {
 
     if (count < maxExtend)
       stepFound = long_step(xymap, shortPath, teleport);
+    else
+      break;
+
 
     if (!stepFound) {
 
@@ -710,7 +712,7 @@ Stack *try_hard(XYMap *xymap, Snake *snake, int maxX, int maxY, Point dest,
       // map = xymap_copy(xymap);
 
       if (!mode)
-        path = longest_path(xymap, path2, snake->length, snake->teleport);
+        path = longer_path(xymap, path2, snake->teleport);
       else {
 
         map = xymap_copy(xymap);

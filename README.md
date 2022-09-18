@@ -18,6 +18,8 @@ With that you can just do:
 
 
 ```
+git clone https://github.com/AngelJumbo/sssnake.git
+cd sssnake
 make
 make install
 ```
