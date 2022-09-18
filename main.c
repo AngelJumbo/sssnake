@@ -916,7 +916,9 @@ void print_help() {
       "  -j, --junk=N       Add random blocks of junk, levels from 1 to 5. "
       "(Default: 0 )\n"
       "  -x N, --maxX=N     Define the width of the game field.\n"
+      "                     A single unit equals to two terminal columns\n"
       "  -y N, --maxY=N     Define the height of the game field.\n"
+      "                     A single unit equals to one terminal row\n"
       "  -z, --score        Shows the size of the snake at any time.\n"
       //"  -f, --fancy        Add a fancy spacing between blocks. (Default:
       // no)\n"

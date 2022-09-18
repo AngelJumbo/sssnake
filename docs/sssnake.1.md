@@ -18,8 +18,8 @@ sssnake - Classic snake game on the terminal that can run in autopilot.
 **-m MODE, --mode=MODE** 
 : Mode in which the program will run. MODE can be:
 
-    * normal (Default mode)
-    * arcade (A board with dimensions and speed increase when the snake eats )
+    * normal (Default mode where you control the snake)
+    * arcade (A board with specific dimensions and the speed increases when the snake eats )
     * autopilot (The game plays itself)
     * screensaver (Same as autopilot but the game restarts every time the snake dies)
 
@@ -35,10 +35,10 @@ sssnake - Classic snake game on the terminal that can run in autopilot.
 : Speed of the game, from 1 to 20. (Default: 1 ).
 
 **-x DIMENSION, --maxX=DIMENSION** 
-: Define the width of the board (minimum value of DIMENSION is 5).
+: Define the width of the board (minimum value of DIMENSION is 5). A single unit is equal to two terminal columns.
 
 **-y DIMENSION, --maxY=DIMENSION** 
-: Define the height of the board (minimum value of DIMENSION is 5).
+: Define the height of the board (minimum value of DIMENSION is 5). A single unit is equal to one terminal row.
 
 **-j NUMBER, --junk=NUMBER** 
 : Add random blocks of junk, levels from 1 to 10. (Default: 0 ).
@@ -50,7 +50,7 @@ sssnake - Classic snake game on the terminal that can run in autopilot.
 : Allows the snake to teleport between borders.
 
 **--try-hard N** 
-:  Makes the snake (almost) unkillable in the autopilot/screensaver mode. For now there are two options (algorithms):
+:  Makes the snake unkillable in the autopilot/screensaver mode. For now there are two options (algorithms):
 
     * "--try-hard 1" is cpu efficient, good for big boards.
     * "--try-hard 2" uses more cpu, it reaches the food faster and produces a cleaner board.
@@ -59,6 +59,7 @@ sssnake - Classic snake game on the terminal that can run in autopilot.
 : Print help message..
 
 # CONTROLS
+
 **wasd, hjkl, up down left right**
 : Basic directional controls.
 
