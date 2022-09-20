@@ -1,6 +1,5 @@
 # sssnake
 The classic snake game for the terminal that can play itself and be used like a screensaver.
-(or you can play it with)
 [![asciicast](https://asciinema.org/a/477685.svg)](https://asciinema.org/a/477685)
 ## Installation
 
@@ -64,7 +63,7 @@ sssnake -m screensaver -s 15 -z -x 8 -y 8 --try-hard 1
 ## Faq
 
 ### Can I control the snake?
-  Yes that's the default mode or you can try the arcade mode where the game increases the speed every time you eat.
+  Yes, that's the default mode or you can try the arcade mode where the game increases the speed every time you eat.
   The controls are wasd, the arrow keys or hjkl(vim keys).
 
 ### Does the snake fills the entire screen/terminal with the autopilot?
@@ -84,8 +83,6 @@ sssnake -m screensaver -s 15 -z -x 8 -y 8 --try-hard 1
    All the snake games in the terminal that I found use ascii characters and lets be honest, they are kinda ugly. 
    I try to do something more visually appealing, something "sexy" and it can play itself so it is "smart". 
    Smart and sexy snake => sssnake.
-### Why C?
-  I like simple and efficient things.
 
 
 

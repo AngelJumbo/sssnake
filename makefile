@@ -1,8 +1,8 @@
 PREFIX = /usr/local
 MANDIR = $(PREFIX)/share/man
 
-sssnake: main.c autopilot.c xymap.c essentials.c snake.c 
-	$(CC) -w $(ncursesw5-config --cflags --libs) main.c autopilot.c xymap.c essentials.c snake.c -lncursesw -o sssnake
+sssnake: main.c autopilot.c xymap.c essentials.c snake.c draw.c 
+	$(CC) -w $(ncursesw5-config --cflags --libs) main.c autopilot.c xymap.c essentials.c snake.c draw.c -lncursesw -o sssnake
 #autopilot.o: autopilot.c xymap.c essentials.c snake.c 
 #	gcc -c autopilot.c xymap.c essentials.c snake.c
 
