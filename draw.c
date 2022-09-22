@@ -26,6 +26,7 @@ int init_scr(int selStyle, int *maxX, int *maxY, short arcadeMode,
   minY_ = 0;
 
   setlocale(LC_ALL, "");
+  // cbreak();
   initscr();
   if (has_colors() == FALSE) {
     endwin();

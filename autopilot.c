@@ -123,30 +123,6 @@ Stack *trace_path(Cell **cellDetails, Point dest, int maxX) {
 Stack *a_star_search(XYMap *xymap, Snake *snake, int maxX, int maxY, Point dest,
                      short checkBody) {
   Point src = {snake->head->x, snake->head->y};
-  // If the source is out of range
-  // if (!is_valid(src.x, src.y, maxX, maxY)) {
-  // printf("Source is invalid\n");
-  // return NULL;
-  // }
-
-  // If the destination is out of range
-  // if (!is_valid(dest.x, dest.y, maxX, maxY)) {
-  // printf("Destination is invalid\n");
-  // return NULL;
-  // }
-
-  // Either the source or the destination is blocked
-  // if (!(is_unblocked(xymap, src.x, src.y) &&
-  // is_unblocked(xymap, dest.x, dest.y))) {
-  // printf("Source or the destination is blocked\n");
-  // return NULL;
-  // }
-
-  // If the destination cell is the same as source cell
-  // if (is_destination(src.x, src.y, dest)) {
-  // printf("We are already at the destination\n");
-  // return NULL;
-  // }
 
   // Create a closed list and initialise it to false which
   // means that no cell has been included yet This closed
@@ -445,8 +421,6 @@ Stack *a_star_search(XYMap *xymap, Snake *snake, int maxX, int maxY, Point dest,
           cellDetails[px + maxX * py]->h = hNew;
           cellDetails[px + maxX * py]->parent_i = i;
           cellDetails[px + maxX * py]->parent_j = j;
-          // cellDetails[i + maxX * (j - 1)]->head =
-          // copy_and_move(cellDetails[i + maxX * j]->head, i, j - 1);
           if (checkBody)
             copy_and_move(cellDetails, i, j, px, py, maxX);
         }
@@ -522,13 +496,9 @@ int long_step(XYMap *xymap, Stack *path, short teleport) {
   Point *np1 = NULL;
   Point *np2 = NULL;
 
-  // XYMap *xymap = xymap_copy(map);
   int stepFound = 0;
-  // Stack *path = stack_create();
   int maxX = xymap->maxX;
   int maxY = xymap->maxY;
-  // Point *p1 = (Point *)stack_pop(shortPath);
-  // Point *p2 = (Point *)stack_pop(shortPath);
 
   int x1, x2, y1, y2;
 
@@ -544,7 +514,6 @@ int long_step(XYMap *xymap, Stack *path, short teleport) {
       np1 = point_create(x1, y1);
       np2 = point_create(x2, y2);
 
-      // stack_push(path, p1);
     } else {
       x1 = x2 = p2->x - 1;
       if (teleport && x1 < 0)
@@ -555,7 +524,6 @@ int long_step(XYMap *xymap, Stack *path, short teleport) {
           !xymap_marked(xymap, x2, y2)) {
         np1 = point_create(x1, y1);
         np2 = point_create(x2, y2);
-        // stack_push(path, point_create(x1, y1));
       }
     }
   }
@@ -596,7 +564,6 @@ int long_step(XYMap *xymap, Stack *path, short teleport) {
     xymap_mark(xymap, np2->x, np2->y, 4);
     xymap_mark(xymap, np1->x, np1->y, 5);
     xymap_mark(xymap, p1->x, p1->y, 6);
-    // xymap_print_log(xymap, -1, -1, -1, -1);
     stepFound = 1;
   } else {
 
@@ -604,28 +571,11 @@ int long_step(XYMap *xymap, Stack *path, short teleport) {
     stack_push(path, p1);
     xymap_mark(xymap, p1->x, p1->y, WALL);
     xymap_mark(xymap, p2->x, p2->y, WALL);
-    // xymap_print_log(xymap, -1, -1, -1, -1);
   }
 
   return stepFound;
-  // xymap_free(xymap);
-  // stack_push(shortPath, p2);
-  // stack_push(shortPath, p1);
 }
-static Stack *stack_invert2(Stack *stack, XYMap *map) {
-  Stack *tmp = stack_create();
-  tmp->count = stack->count;
-  Point *p = NULL;
-  int count = 3;
-  while (stack->last != NULL) {
-    p = (Point *)stack_pop(stack);
-    xymap_mark(map, p->x, p->y, count);
-    stack_push(tmp, p);
-    count++;
-  }
-  stack_free(stack);
-  return tmp;
-}
+
 static Stack *longer_path(XYMap *map, Stack *sPath, short teleport) {
   Stack *shortPath = copy_path(sPath);
   Stack *path = stack_create();
@@ -645,7 +595,6 @@ static Stack *longer_path(XYMap *map, Stack *sPath, short teleport) {
       stepFound = long_step(xymap, shortPath, teleport);
     else
       break;
-
 
     if (!stepFound) {
 

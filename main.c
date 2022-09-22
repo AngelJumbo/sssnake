@@ -52,6 +52,8 @@ int main(int argc, char *argv[]) {
 
   srand(time(NULL));
 
+  score = score || selectedMode == ARCADE;
+
   if (!init_scr(selectedStyle, &maxX, &maxY, selectedMode == ARCADE, score))
     return 0;
 
@@ -129,7 +131,17 @@ int main(int argc, char *argv[]) {
 
       timeout(0);
       c = getch();
-      // move(rows, cols);
+
+      // Pause game
+      if (c == ' ') {
+        do {
+          nodelay(stdscr, false);
+          c = getch();
+        } while (c != ' ');
+
+        nodelay(stdscr, true);
+        c = getch();
+      }
 
       if (path != NULL) {
 

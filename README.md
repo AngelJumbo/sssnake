@@ -53,7 +53,7 @@ sssnake -m screensaver -s 15 -z -x 8 -y 8 --try-hard 1
 ## Planned features 
 
 ### Definitely be added
-  - Pause key.
+  - ~~Pause key~~ Spacebar is now the pause key.
   - Increase and decrease speed keys.
   - An alternative/replacement to the A\* algorithm (probably IDA\* or BFS).
 ### May be added
