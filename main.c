@@ -32,7 +32,7 @@ void init_options(int argc, char *argv[]);
 int get_direction(int c);
 int check_junk_pos(XYMap *blocksTaken, int x, int y);
 void print_help();
-int check_path(Stack *path);
+int check_path(Stack **path);
 
 int main(int argc, char *argv[]) {
 
@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
     while (1) {
       // Get a new path to follow if the autopilot or the screensaver are active
       if ((selectedMode == AUTOPILOT || selectedMode == SCREENSAVER) &&
-          !check_path(path)) {
+          !check_path(&path)) {
 
         switch (selectedAlgorithm) {
         case BASIC:
@@ -172,6 +172,7 @@ int main(int argc, char *argv[]) {
         if (snake->length == maxBlocks)
           break;
       }
+
       if (snake->head->x == food.x && snake->head->y == food.y) {
         stack_free(path);
         path = NULL;
@@ -211,20 +212,20 @@ int main(int argc, char *argv[]) {
       list_free(junkList);
     snake_free(snake);
     xymap_free(blocksTaken);
-    if (path != NULL)
-      stack_free(path);
     if (c == 'q')
       break;
   } while (selectedMode == SCREENSAVER);
+  if (path != NULL)
+    stack_free(path);
   endwin();
 }
 
-int check_path(Stack *path) {
+int check_path(Stack **path) {
 
-  if (path != NULL) {
-    if (path->last == NULL) {
-      stack_free(path);
-      path = NULL;
+  if (*path != NULL) {
+    if ((*path)->last == NULL) {
+      stack_free(*path);
+      *path = NULL;
       return 0;
     } else
       return 1;
