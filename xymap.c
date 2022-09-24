@@ -1,5 +1,4 @@
 #include "xymap.h"
-#include <stdio.h>
 
 XYMap *xymap_create(int maxX, int maxY) {
   XYMap *tmp = (XYMap *)malloc(sizeof(XYMap));

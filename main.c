@@ -8,8 +8,8 @@
 
 #include "autopilot.h"
 #include "draw.h"
-#include "essentials.h"
 #include "snake.h"
+#include "structs.h"
 #include "xymap.h"
 
 enum modes { NORMAL, ARCADE, AUTOPILOT, SCREENSAVER };
@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
   Snake *snake = NULL;
   Stack *path = NULL;
   List *junkList = NULL;
-  Point food;
+  Point food = {-1, -1};
 
   // Control variables for the screensaver mode
 
@@ -105,7 +105,8 @@ int main(int argc, char *argv[]) {
         case BASIC:
 
           path = a_star_search(blocksTaken, snake, maxX, maxY, food, 1);
-
+          // path = breadth_first_search(blocksTaken, snake, maxX, maxY, food,
+          // 1);
           break;
         case GREEDY1:
           path = try_hard(blocksTaken, snake, maxX, maxY, food, 0);
@@ -172,6 +173,8 @@ int main(int argc, char *argv[]) {
           break;
       }
       if (snake->head->x == food.x && snake->head->y == food.y) {
+        stack_free(path);
+        path = NULL;
         if (junkCount + snake->length < maxBlocks) {
           controlLastPoint = food;
           controlSnakeSize = snake->length;
@@ -208,7 +211,8 @@ int main(int argc, char *argv[]) {
       list_free(junkList);
     snake_free(snake);
     xymap_free(blocksTaken);
-
+    if (path != NULL)
+      stack_free(path);
     if (c == 'q')
       break;
   } while (selectedMode == SCREENSAVER);

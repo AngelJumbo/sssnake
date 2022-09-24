@@ -1,8 +1,8 @@
 #ifndef DRAW_H
 #define DRAW_H
 
-#include "essentials.h"
 #include "snake.h"
+#include "structs.h"
 #include <curses.h>
 #include <locale.h>
 #include <wchar.h>

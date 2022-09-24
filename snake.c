@@ -1,5 +1,4 @@
 #include "snake.h"
-#include "xymap.h"
 
 SnakePart *snake_part_create(int x, int y, SnakePart *prev) {
   SnakePart *tmp = (SnakePart *)malloc(sizeof(SnakePart));

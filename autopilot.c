@@ -1,8 +1,7 @@
 #include "autopilot.h"
-#include "essentials.h"
 #include "snake.h"
+#include "structs.h"
 #include "xymap.h"
-#include <stdio.h>
 
 Cell *cell_create(int parent_i, int parent_j, double f, double g, double h) {
   Cell *tmp = (Cell *)malloc(sizeof(Cell));
@@ -42,7 +41,7 @@ static void copy_and_move(Cell **cellDetails, int x, int y, int x2, int y2,
   cellDetails[pos2]->head = copy_snake_body(cellDetails[pos1]->head, x2, y2);
 }
 
-int is_valid(int x, int y, int maxX, int maxY) {
+static int is_valid(int x, int y, int maxX, int maxY) {
   return (y >= 0) && (y < maxY) && (x >= 0) && (x < maxX);
 }
 
@@ -65,13 +64,16 @@ static int is_unblocked(XYMap *xymap, Cell **cellDetails, int x, int y, int x2,
 
     return unblocked;
   }
-  if (xymap_marked(xymap, x2, y2)) {
-    return 0;
-  }
-  return 1;
+
+  return !xymap_marked(xymap, x2, y2);
+
+  // if (xymap_marked(xymap, x2, y2)) {
+  //   return 0;
+  // }
+  // return 1;
 }
 
-int is_destination(int x, int y, Point dest) {
+static int is_destination(int x, int y, Point dest) {
   if (y == dest.y && x == dest.x)
     return 1;
   else
@@ -454,6 +456,120 @@ Stack *a_star_search(XYMap *xymap, Snake *snake, int maxX, int maxY, Point dest,
     free(stack_pop(path));
   return path;
 }
+
+Stack *breadth_first_search(XYMap *m, Snake *snake, int maxX, int maxY,
+                            Point dest, short checkBody) {
+  // XYMap *m = xymap_copy(map);
+
+  // xymap_unmark(m, dest.x, dest.y);
+  int closedList[maxX][maxY];
+  memset(closedList, 0, sizeof(closedList));
+  // Declare a 2D array of structure to hold the details
+  // of that cell
+  Cell **cellDetails = (Cell **)malloc(sizeof(void *) * maxX * maxY);
+
+  int i, j;
+  int pos;
+  for (i = 0; i < maxX; i++) {
+    for (j = 0; j < maxY; j++) {
+      pos = i + maxX * j;
+      cellDetails[pos] = cell_create(-1, -1, FLT_MAX, FLT_MAX, FLT_MAX);
+    }
+  }
+
+  // Initialising the parameters of the starting node
+  i = snake->head->x, j = snake->head->y;
+  pos = i + maxX * j;
+  cellDetails[pos]->parent_i = i;
+  cellDetails[pos]->parent_j = j;
+
+  if (checkBody) {
+    cellDetails[pos]->head =
+        snake_part_create(snake->head->x, snake->head->y, NULL);
+    SnakePart *tmpPart = cellDetails[pos]->head;
+    for (SnakePart *part = snake->head->next; part != NULL; part = part->next) {
+
+      tmpPart->next = snake_part_create(part->x, part->y, tmpPart);
+      tmpPart = tmpPart->next;
+    }
+  }
+
+  // xymap_unmark(m, i, j);
+  Stack *path = NULL;
+
+  Queue *q = queue_create();
+
+  queue_enqueue(q, point_create(snake->head->x, snake->head->y));
+  closedList[snake->head->x][snake->head->y] = 1;
+  while (q->count > 0) {
+    Point *p = queue_dequeue(q);
+    // closedList[p->x][p->y] = 1;
+    if (is_destination(p->x, p->y, dest)) {
+      path = trace_path(cellDetails, dest, maxX);
+      break;
+    }
+    for (int i2 = -1; i2 < 2; i2 += 2) {
+      for (int j2 = 0; j2 < 2; j2++) {
+        int x = p->x + (j2 == 0 ? i2 : 0);
+        int y = p->y + (j2 == 1 ? i2 : 0);
+        if (snake->teleport) {
+          if (x >= maxX)
+            x = 0;
+          if (y >= maxY)
+            y = 0;
+          if (x < 0)
+            x = maxX;
+          if (y < 0)
+            y = maxY;
+        }
+        pos = x + maxX * y;
+        if (!closedList[x][y] && is_valid(x, y, maxX, maxY) &&
+            (is_unblocked(m, cellDetails, p->x, p->y, x, y, maxX, checkBody) ||
+             (dest.x == x && dest.y == y))) {
+          // xymap_mark(m2, x, y, SBODY);
+          closedList[x][y] = 1;
+          cellDetails[pos]->parent_i = p->x;
+          cellDetails[pos]->parent_j = p->y;
+          Point *p2 = point_create(x, y);
+          queue_enqueue(q, p2);
+          if (checkBody)
+            copy_and_move(cellDetails, p->x, p->y, x, y, maxX);
+          // else
+          // xymap_mark(m, x, y, SBODY);
+        }
+      }
+    }
+    free(p);
+  }
+  if (path != NULL) {
+    // path = stack_i /nvert(path);
+    free(stack_pop(path));
+  }
+  queue_free(q);
+  // xymap_free(m);
+  // xymap_free(m2);
+
+  for (i = 0; i < maxX; i++) {
+    for (j = 0; j < maxY; j++) {
+      pos = i + maxX * j;
+
+      if (cellDetails[pos]->head != NULL) {
+        SnakePart *part = cellDetails[pos]->head;
+        SnakePart *partNext = NULL;
+        while (part != NULL) {
+          partNext = part->next;
+          free(part);
+          part = partNext;
+        }
+      }
+      free(cellDetails[pos]);
+    }
+  }
+
+  free(cellDetails);
+  return path;
+}
+
 static Stack *copy_path(Stack *stack) {
   Node *node = stack->last;
   Point *ptmp = NULL;
@@ -622,6 +738,7 @@ Stack *try_hard(XYMap *xymap, Snake *snake, int maxX, int maxY, Point dest,
   Snake *sn = snake_copy(snake);
   XYMap *map = xymap_copy(xymap);
   Stack *path = a_star_search(map, sn, maxX, maxY, dest, 1);
+  // Stack *path = breadth_first_search(map, sn, maxX, maxY, dest, 1);
   Stack *confirm = NULL;
   Stack *path2 = NULL;
   int safePathFound = 0;
@@ -635,10 +752,11 @@ Stack *try_hard(XYMap *xymap, Snake *snake, int maxX, int maxY, Point dest,
     }
     Point tail = {sn->tail->x, sn->tail->y};
     confirm = a_star_search(map, sn, maxX, maxY, tail, 0);
+    // confirm = breadth_first_search(map, sn, maxX, maxY, tail, 0);
     if (confirm != NULL) {
       safePathFound = 1;
       stack_free(confirm);
-      snake->onWayToFood = 1;
+      // snake->onWayToFood = 1;
     }
     stack_free(path2);
   }
@@ -650,11 +768,8 @@ Stack *try_hard(XYMap *xymap, Snake *snake, int maxX, int maxY, Point dest,
     path = NULL;
     Point tail = {snake->tail->x, snake->tail->y};
     path2 = a_star_search(xymap, snake, maxX, maxY, tail, 0);
-    // if (path2 != NULL) {
-    //   path = stack_create();
-    //   stack_push(path, stack_pop(path2));
-    //   stack_free(path2);
-    // }
+    // path2 = breadth_first_search(xymap, snake, maxX, maxY, tail, 0);
+
     if (path2 != NULL) {
       Point *p = point_create(snake->head->x, snake->head->y);
       stack_push(path2, p);
