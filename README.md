@@ -55,10 +55,11 @@ sssnake -m screensaver -s 15 -z -x 8 -y 8 --try-hard 1
 ### Definitely be added
   - ~~Pause key~~ Spacebar is now the pause key.
   - Increase and decrease speed keys.
-  - An alternative/replacement to the A\* algorithm (probably IDA\* or BFS).
+  - ~~An alternative/replacement to the A\* algorithm (probably BFS)~~ BFS is now available with: `--short-path=bfs`.
 ### May be added
   - Hamiltonian cycles.
   - Custom colors.
+  - IDA\* to find the shortest path. 
 
 ## Faq
 
