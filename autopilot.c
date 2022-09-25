@@ -498,14 +498,17 @@ Stack *breadth_first_search(XYMap *m, Snake *snake, int maxX, int maxY,
   Stack *path = NULL;
 
   Queue *q = queue_create();
+  Point *p = NULL; // point_create(i, j);
 
   queue_enqueue(q, point_create(snake->head->x, snake->head->y));
   closedList[snake->head->x][snake->head->y] = 1;
   while (q->count > 0) {
-    Point *p = queue_dequeue(q);
+    // if (p == NULL)
+    p = (Point *)queue_dequeue(q);
     // closedList[p->x][p->y] = 1;
     if (is_destination(p->x, p->y, dest)) {
       path = trace_path(cellDetails, dest, maxX);
+      free(p);
       break;
     }
     for (int i2 = -1; i2 < 2; i2 += 2) {
@@ -518,9 +521,9 @@ Stack *breadth_first_search(XYMap *m, Snake *snake, int maxX, int maxY,
           if (y >= maxY)
             y = 0;
           if (x < 0)
-            x = maxX;
+            x = maxX - 1;
           if (y < 0)
-            y = maxY;
+            y = maxY - 1;
         }
         pos = x + maxX * y;
         if (!closedList[x][y] && is_valid(x, y, maxX, maxY) &&
@@ -540,6 +543,7 @@ Stack *breadth_first_search(XYMap *m, Snake *snake, int maxX, int maxY,
       }
     }
     free(p);
+    p = NULL;
   }
   if (path != NULL) {
     // path = stack_i /nvert(path);

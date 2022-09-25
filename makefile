@@ -5,7 +5,7 @@ sssnake: main.c autopilot.c xymap.c structs.c snake.c draw.c
 	$(CC) -w $(ncursesw5-config --cflags --libs) main.c autopilot.c xymap.c structs.c snake.c draw.c -lncursesw -o sssnake
 
 debug: main.c autopilot.c xymap.c structs.c snake.c draw.c 
-	$(CC) -w $(ncursesw5-config --cflags --libs) -g main.c autopilot.c xymap.c structs.c snake.c draw.c -lncursesw -o sssnake
+	$(CC) -w $(ncursesw5-config --cflags --libs) -Wall -g main.c autopilot.c xymap.c structs.c snake.c draw.c -lncursesw -o sssnake
 
 
 .PHONY: genman
