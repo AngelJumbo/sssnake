@@ -3,6 +3,26 @@
 #include "structs.h"
 #include "xymap.h"
 
+// static short selectedShortPathAlg = ASTAR;
+
+static Stack *(*short_path)(XYMap *, Snake *, int, int, Point,
+                            short) = a_star_search;
+
+void set_short_path_algorithm(short algorithm) {
+  switch (algorithm) {
+  case ASTAR:
+    short_path = a_star_search;
+    break;
+  case BFS:
+    short_path = breadth_first_search;
+    break;
+  default:
+
+    short_path = a_star_search;
+    break;
+  }
+}
+
 Cell *cell_create(int parent_i, int parent_j, double f, double g, double h) {
   Cell *tmp = (Cell *)malloc(sizeof(Cell));
   tmp->parent_i = parent_i;
@@ -498,23 +518,23 @@ Stack *breadth_first_search(XYMap *m, Snake *snake, int maxX, int maxY,
   Stack *path = NULL;
 
   Queue *q = queue_create();
-  Point *p = NULL; // point_create(i, j);
+  Point *p = NULL;
 
   queue_enqueue(q, point_create(snake->head->x, snake->head->y));
-  closedList[snake->head->x][snake->head->y] = 1;
+  closedList[i][j] = 1;
   while (q->count > 0) {
-    // if (p == NULL)
     p = (Point *)queue_dequeue(q);
-    // closedList[p->x][p->y] = 1;
+
     if (is_destination(p->x, p->y, dest)) {
       path = trace_path(cellDetails, dest, maxX);
       free(p);
       break;
     }
-    for (int i2 = -1; i2 < 2; i2 += 2) {
-      for (int j2 = 0; j2 < 2; j2++) {
-        int x = p->x + (j2 == 0 ? i2 : 0);
-        int y = p->y + (j2 == 1 ? i2 : 0);
+
+    for (i = -1; i < 2; i += 2) {
+      for (j = 0; j < 2; j++) {
+        int x = p->x + (j == 0 ? i : 0);
+        int y = p->y + (j == 1 ? i : 0);
         if (snake->teleport) {
           if (x >= maxX)
             x = 0;
@@ -526,25 +546,31 @@ Stack *breadth_first_search(XYMap *m, Snake *snake, int maxX, int maxY,
             y = maxY - 1;
         }
         pos = x + maxX * y;
-        if (!closedList[x][y] && is_valid(x, y, maxX, maxY) &&
-            (is_unblocked(m, cellDetails, p->x, p->y, x, y, maxX, checkBody) ||
-             (dest.x == x && dest.y == y))) {
-          // xymap_mark(m2, x, y, SBODY);
-          closedList[x][y] = 1;
-          cellDetails[pos]->parent_i = p->x;
-          cellDetails[pos]->parent_j = p->y;
-          Point *p2 = point_create(x, y);
-          queue_enqueue(q, p2);
-          if (checkBody)
-            copy_and_move(cellDetails, p->x, p->y, x, y, maxX);
-          // else
-          // xymap_mark(m, x, y, SBODY);
+        if (is_valid(x, y, maxX, maxY)) {
+
+          if (!closedList[x][y] && (is_unblocked(m, cellDetails, p->x, p->y, x,
+                                                 y, maxX, checkBody) ||
+                                    (dest.x == x && dest.y == y))) {
+            // xymap_mark(m2, x, y, SBODY);
+            closedList[x][y] = 1;
+            cellDetails[pos]->parent_i = p->x;
+            cellDetails[pos]->parent_j = p->y;
+            Point *p2 = point_create(x, y);
+            queue_enqueue(q, p2);
+            if (checkBody)
+              copy_and_move(cellDetails, p->x, p->y, x, y, maxX);
+            // else
+            // xymap_mark(m, x, y, SBODY);
+          }
         }
       }
     }
     free(p);
     p = NULL;
+    // if (p == NULL)
+    // closedList[p->x][p->y] = 1;
   }
+
   if (path != NULL) {
     // path = stack_i /nvert(path);
     free(stack_pop(path));
@@ -741,8 +767,9 @@ Stack *try_hard(XYMap *xymap, Snake *snake, int maxX, int maxY, Point dest,
                 short mode) {
   Snake *sn = snake_copy(snake);
   XYMap *map = xymap_copy(xymap);
-  Stack *path = a_star_search(map, sn, maxX, maxY, dest, 1);
+  // Stack *path = a_star_search(map, sn, maxX, maxY, dest, 1);
   // Stack *path = breadth_first_search(map, sn, maxX, maxY, dest, 1);
+  Stack *path = short_path(map, sn, maxX, maxY, dest, 1);
   Stack *confirm = NULL;
   Stack *path2 = NULL;
   int safePathFound = 0;
@@ -755,8 +782,9 @@ Stack *try_hard(XYMap *xymap, Snake *snake, int maxX, int maxY, Point dest,
       free(p);
     }
     Point tail = {sn->tail->x, sn->tail->y};
-    confirm = a_star_search(map, sn, maxX, maxY, tail, 0);
+    // confirm = a_star_search(map, sn, maxX, maxY, tail, 0);
     // confirm = breadth_first_search(map, sn, maxX, maxY, tail, 0);
+    confirm = short_path(map, sn, maxX, maxY, tail, 0);
     if (confirm != NULL) {
       safePathFound = 1;
       stack_free(confirm);
@@ -771,8 +799,8 @@ Stack *try_hard(XYMap *xymap, Snake *snake, int maxX, int maxY, Point dest,
       stack_free(path);
     path = NULL;
     Point tail = {snake->tail->x, snake->tail->y};
-    path2 = a_star_search(xymap, snake, maxX, maxY, tail, 0);
-    // path2 = breadth_first_search(xymap, snake, maxX, maxY, tail, 0);
+    // path2 = a_star_search(xymap, snake, maxX, maxY, tail, 0);
+    path2 = short_path(xymap, snake, maxX, maxY, tail, 0);
 
     if (path2 != NULL) {
       Point *p = point_create(snake->head->x, snake->head->y);
@@ -808,4 +836,9 @@ Stack *try_hard(XYMap *xymap, Snake *snake, int maxX, int maxY, Point dest,
     }
   }
   return path;
+}
+
+Stack *basic_path_search(XYMap *map, Snake *snake, int maxX, int maxY,
+                         Point dest) {
+  return short_path(map, snake, maxX, maxY, dest, 1);
 }

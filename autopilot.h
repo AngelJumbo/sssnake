@@ -10,6 +10,7 @@
 #include <string.h>
 
 enum algorithm { BASIC, GREEDY1, GREEDY2 };
+enum shortPathAlgorithm { ASTAR, BFS };
 
 typedef struct cell {
   int parent_i, parent_j;
@@ -18,6 +19,8 @@ typedef struct cell {
   SnakePart *head;
 } Cell;
 Cell *cell_create(int parent_i, int parent_j, double f, double g, double h);
+
+void set_short_path_algorithm(short algorithm);
 
 // int is_valid(int x, int y, int maxX, int maxY);
 
@@ -38,4 +41,8 @@ int long_step(XYMap *xymap, Stack *path, short teleport);
 
 Stack *breadth_first_search(XYMap *map, Snake *snake, int maxX, int maxY,
                             Point dest, short checkBody);
+
+Stack *basic_path_search(XYMap *map, Snake *snake, int maxX, int maxY,
+                         Point dest);
+
 #endif // !AUTOPILOT_H

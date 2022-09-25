@@ -103,10 +103,7 @@ int main(int argc, char *argv[]) {
 
         switch (selectedAlgorithm) {
         case BASIC:
-
-          path = a_star_search(blocksTaken, snake, maxX, maxY, food, 1);
-          // path = breadth_first_search(blocksTaken, snake, maxX, maxY, food,
-          // 1);
+          path = basic_path_search(blocksTaken, snake, maxX, maxY, food);
           break;
         case GREEDY1:
           path = try_hard(blocksTaken, snake, maxX, maxY, food, 0);
@@ -319,6 +316,7 @@ void init_options(int argc, char *argv[]) {
                                         {"maxX", 1, NULL, 'x'},
                                         {"maxY", 1, NULL, 'y'},
                                         {"try-hard", 1, NULL, 1},
+                                        {"short-path", 1, NULL, 2},
 
                                         // {"try-hard", 0, NULL, 0},
                                         {NULL, 0, NULL, 0}};
@@ -330,7 +328,7 @@ void init_options(int argc, char *argv[]) {
            "sssnake -h\n ");
   }
 
-  while ((op = getopt_long(argc, argv, ":aSfs:j:hAzl:m:tx:y:1:", long_options,
+  while ((op = getopt_long(argc, argv, ":aSfs:j:hAzl:m:tx:y:1:2:", long_options,
                            NULL)) != -1) {
     switch (op) {
     case 'A':
@@ -428,6 +426,18 @@ void init_options(int argc, char *argv[]) {
         exit(0);
       }
       break;
+    case 2:
+      if (strcmp(optarg, "astar") == 0)
+        set_short_path_algorithm(ASTAR);
+      else if (strcmp(optarg, "bfs") == 0)
+        set_short_path_algorithm(BFS);
+      else {
+        printf("Incomplete or invalid argument for short-path\n");
+        exit(0);
+      }
+
+      break;
+
     case 'h':
       print_help();
       exit(0);
@@ -473,7 +483,7 @@ void print_help() {
       // no)\n"
       "  -t, --teleport     Teleport between borders.\n"
       "  -h, --help         Print help message. \n"
-      "  --try-hard N       Makes the snake (almost) unkillable in the "
+      "  --try-hard=N       Makes the snake unkillable in the "
       "autopilot/screensaver mode\n."
 
       "                     For now there are two options (algorithms):\n"
@@ -483,6 +493,11 @@ void print_help() {
       "food faster and produces a cleaner board.\n"
       "                     Neither of the two works well with junk in the "
       "board.\n"
+      "  --short-path=ALG   This lets you set the algorithm that finds the "
+      "shortest path. \n"
+
+      "                     The available algorithms are:\n"
+      "                     astar and bfs (astar (A*) is the default).\n"
 
       "Try to run something like this :\n"
       "sssnake -s 15 -j 5 -m screensaver\n"

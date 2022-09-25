@@ -27,12 +27,15 @@ void list_append(List *list, void *data) {
   list->count++;
 }
 void *list_get_first(List *list) {
-  void *data = list->first->data;
-  Node *next = list->first->next;
-  free(list->first);
-  list->first = next;
-  list->count--;
-  return data;
+  if (list->count > 0) {
+    void *data = list->first->data;
+    Node *next = list->first->next;
+    free(list->first);
+    list->first = next;
+    list->count--;
+    return data;
+  }
+  return NULL;
 }
 
 void list_free(List *list) {
