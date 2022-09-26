@@ -84,7 +84,7 @@ sssnake -m screensaver -s 15 -z -x 8 -y 8 --try-hard 1
    All the snake games in the terminal that I found use ascii characters and lets be honest, they are kinda ugly. 
    I try to do something more visually appealing, something "sexy" and it can play itself so it is "smart". 
    Smart and sexy snake => sssnake.
-### A\* vs BFS
+## A\* vs BFS
    At first this project was just an implementation of A\* in the snake game, After finding [chuyangliu's project](https://github.com/chuyangliu/snake/) I implemented their greedy solver with my A\* instead of their BFS. Noticing that the behavior of the two implementations would be interestingly different I decided to implement BFS in this project also as an alternative to A\*.
 You can see the result here:
 
