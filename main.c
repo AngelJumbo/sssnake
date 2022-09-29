@@ -146,11 +146,13 @@ int main(int argc, char *argv[]) {
         case '=':
           if (speed - 10000 > 0)
             speed -= 10000;
+          c = ERR;
           break;
         case '-':
         case '_':
           if (speed + 10000 <= 200000)
             speed += 10000;
+          c = ERR;
           break;
         }
       }
