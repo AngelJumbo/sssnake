@@ -139,6 +139,20 @@ int main(int argc, char *argv[]) {
 
         nodelay(stdscr, true);
         c = getch();
+      } else if (selectedMode == SCREENSAVER || selectedMode == AUTOPILOT) {
+        // control speed
+        switch (c) {
+        case '+':
+        case '=':
+          if (speed - 10000 > 0)
+            speed -= 10000;
+          break;
+        case '-':
+        case '_':
+          if (speed + 10000 <= 200000)
+            speed += 10000;
+          break;
+        }
       }
 
       if (path != NULL) {
@@ -470,11 +484,11 @@ void print_help() {
       "fancy) \n"
       //"  -a, --autopilot    The game plays itself. (Default: no)\n"
       //"  -A, --ascii        Use ascii characters. (Default: no)\n"
-      "  -s, --speed=N      Speed of the game, from 1 to 20. (Default: 1 )\n"
+      "  -s N, --speed=N    Speed of the game, from 1 to 20. (Default: 1 )\n"
       //"  -S, --screensaver  Autopilot, but it restarts when it dies. (Default:
       //"
       //"no)\n"
-      "  -j, --junk=N       Add random blocks of junk, levels from 1 to 5. "
+      "  -j N, --junk=N     Add random blocks of junk, levels from 1 to 5. "
       "(Default: 0 )\n"
       "  -x N, --maxX=N     Define the width of the game field.\n"
       "                     A single unit equals to two terminal columns\n"
@@ -503,6 +517,18 @@ void print_help() {
       "                     bfs : Breadth-first search.\n"
       "                     asfixed : A* with a heuristic that puts extra cost "
       "to the turns.\n"
+
+      "Controls:\n"
+      "  NORMAL/ARCADE:\n"
+      "    wasd,hjkl and arrow keys           Movement controls.\n"
+      "    spacebar                           Pause game.\n"
+      "    q                                  Quits the game.\n"
+      "  AUTOPILOT/SCREENSAVER:\n"
+      "    + and -                            Increase and decrease speed.\n"
+      "    spacebar                           Pause game.\n"
+      "    q                                  Quits the game.\n"
+      "  SCREENSAVER:\n"
+      "    Any key except +,- or spacebar     Quits the game.\n"
 
       "Try to run something like this :\n"
       "sssnake -s 15 -j 5 -m screensaver\n"
