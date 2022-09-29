@@ -10,7 +10,7 @@
 #include <string.h>
 
 enum algorithm { BASIC, GREEDY1, GREEDY2 };
-enum shortPathAlgorithm { ASTAR, BFS };
+enum shortPathAlgorithm { ASTAR, BFS, ASTARFIXED };
 
 typedef struct cell {
   int parent_i, parent_j;
@@ -26,8 +26,10 @@ void set_short_path_algorithm(short algorithm);
 
 // int is_destination(int x, int y, Point dest);
 
-int calculate_h_value(int x, int y, Point dest, int maxX, int maxY,
-                      short teleport);
+int calculate_h_value(int x, int y, int bx, int by, Point dest, int maxX,
+                      int maxY, short teleport);
+int calculate_h_value_fixed(int x, int y, int bx, int by, Point dest, int maxX,
+                            int maxY, short teleport);
 
 Stack *trace_path(Cell **cellDetails, Point dest, int maxX);
 

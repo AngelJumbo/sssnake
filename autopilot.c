@@ -8,6 +8,9 @@
 static Stack *(*short_path)(XYMap *, Snake *, int, int, Point,
                             short) = a_star_search;
 
+int (*calculate_heuristic)(int, int, int, int, Point, int, int,
+                           short) = calculate_h_value;
+
 void set_short_path_algorithm(short algorithm) {
   switch (algorithm) {
   case ASTAR:
@@ -16,8 +19,12 @@ void set_short_path_algorithm(short algorithm) {
   case BFS:
     short_path = breadth_first_search;
     break;
-  default:
+  case ASTARFIXED:
+    short_path = a_star_search;
+    calculate_heuristic = calculate_h_value_fixed;
+    break;
 
+  default:
     short_path = a_star_search;
     break;
   }
@@ -100,11 +107,10 @@ static int is_destination(int x, int y, Point dest) {
     return 0;
 }
 
-int calculate_h_value(int x, int y, Point dest, int maxX, int maxY,
-                      short teleport) {
+int calculate_h_value(int x, int y, int bx, int by, Point dest, int maxX,
+                      int maxY, short teleport) {
+
   if (!teleport)
-    // not the distance formula because is dumb to use sqrt so much and we don't
-    // need to be so precise
     return abs(y - dest.y) + abs(x - dest.x);
   else {
     int min = abs(y - dest.y) + abs(x - dest.x);
@@ -118,6 +124,43 @@ int calculate_h_value(int x, int y, Point dest, int maxX, int maxY,
       min = h3;
     return min;
   }
+}
+
+int calculate_h_value_fixed(int x, int y, int bx, int by, Point dest, int maxX,
+                            int maxY, short teleport) {
+  int diffy = abs(y - dest.y);
+  int diffx = abs(x - dest.x);
+  int h_value;
+  if (diffx == 0 || diffy == 0)
+    h_value = diffx + diffy;
+  else if (x == bx || y == by)
+    h_value = diffx + diffy;
+  else
+    return diffx + diffy + 1;
+
+  if (teleport) {
+    int min = h_value;
+    int h2 = 0;
+    int h3 = 0;
+    if ((diffx == 0 || diffy == 0) || (x == bx || y == by)) {
+      h2 = y > dest.y ? maxY - y + dest.y + abs(x - dest.x)
+                      : y + maxY - dest.y + abs(x - dest.x);
+      h3 = x > dest.x ? maxX - x + dest.x + abs(y - dest.y)
+                      : x + maxX - dest.x + abs(y - dest.y);
+    } else {
+
+      h2 = y > dest.y ? maxY - y + dest.y + abs(x - dest.x) + 1
+                      : y + maxY - dest.y + abs(x - dest.x) + 1;
+      h3 = x > dest.x ? maxX - x + dest.x + abs(y - dest.y) + 1
+                      : x + maxX - dest.x + abs(y - dest.y) + 1;
+    }
+    if (min > h2)
+      min = h2;
+    if (min > h3)
+      min = h3;
+    return min;
+  }
+  return h_value;
 }
 
 Stack *trace_path(Cell **cellDetails, Point dest, int maxX) {
@@ -258,7 +301,9 @@ Stack *a_star_search(XYMap *xymap, Snake *snake, int maxX, int maxY, Point dest,
       else if (!closedList[px][py] && is_unblocked(xymap, cellDetails, i, j, px,
                                                    py, maxX, checkBody)) {
         gNew = cellDetails[i + maxX * j]->g + 1.0;
-        hNew = calculate_h_value(px, py, dest, maxX, maxY, snake->teleport);
+        hNew = calculate_heuristic(px, py, cellDetails[i + maxX * j]->parent_i,
+                                   cellDetails[i + maxX * j]->parent_i, dest,
+                                   maxX, maxY, snake->teleport);
         fNew = gNew + hNew;
 
         // If it isn’t on the open list, add it to
@@ -310,7 +355,9 @@ Stack *a_star_search(XYMap *xymap, Snake *snake, int maxX, int maxY, Point dest,
       else if (!closedList[px][py] && is_unblocked(xymap, cellDetails, i, j, px,
                                                    py, maxX, checkBody)) {
         gNew = cellDetails[i + maxX * j]->g + 1.0;
-        hNew = calculate_h_value(px, py, dest, maxX, maxY, snake->teleport);
+        hNew = calculate_heuristic(px, py, cellDetails[i + maxX * j]->parent_i,
+                                   cellDetails[i + maxX * j]->parent_i, dest,
+                                   maxX, maxY, snake->teleport);
         fNew = gNew + hNew;
 
         // If it isn’t on the open list, add it to
@@ -364,7 +411,9 @@ Stack *a_star_search(XYMap *xymap, Snake *snake, int maxX, int maxY, Point dest,
       else if (!closedList[px][py] && is_unblocked(xymap, cellDetails, i, j, px,
                                                    py, maxX, checkBody)) {
         gNew = cellDetails[i + maxX * j]->g + 1.0;
-        hNew = calculate_h_value(px, py, dest, maxX, maxY, snake->teleport);
+        hNew = calculate_heuristic(px, py, cellDetails[i + maxX * j]->parent_i,
+                                   cellDetails[i + maxX * j]->parent_i, dest,
+                                   maxX, maxY, snake->teleport);
         fNew = gNew + hNew;
 
         // If it isn’t on the open list, add it to
@@ -421,7 +470,9 @@ Stack *a_star_search(XYMap *xymap, Snake *snake, int maxX, int maxY, Point dest,
       else if (!closedList[px][py] && is_unblocked(xymap, cellDetails, i, j, px,
                                                    py, maxX, checkBody)) {
         gNew = cellDetails[i + maxX * j]->g + 1.0;
-        hNew = calculate_h_value(px, py, dest, maxX, maxY, snake->teleport);
+        hNew = calculate_heuristic(px, py, cellDetails[i + maxX * j]->parent_i,
+                                   cellDetails[i + maxX * j]->parent_i, dest,
+                                   maxX, maxY, snake->teleport);
         fNew = gNew + hNew;
 
         // If it isn’t on the open list, add it to

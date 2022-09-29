@@ -431,6 +431,8 @@ void init_options(int argc, char *argv[]) {
         set_short_path_algorithm(ASTAR);
       else if (strcmp(optarg, "bfs") == 0)
         set_short_path_algorithm(BFS);
+      else if (strcmp(optarg, "asfixed") == 0)
+        set_short_path_algorithm(ASTARFIXED);
       else {
         printf("Incomplete or invalid argument for short-path\n");
         exit(0);
@@ -497,7 +499,10 @@ void print_help() {
       "shortest path. \n"
 
       "                     The available algorithms are:\n"
-      "                     astar and bfs (astar (A*) is the default).\n"
+      "                     astar : A* with a simple heuristic.(default).\n"
+      "                     bfs : Breadth-first search.\n"
+      "                     asfixed : A* with a heuristic that puts extra cost "
+      "to the turns.\n"
 
       "Try to run something like this :\n"
       "sssnake -s 15 -j 5 -m screensaver\n"
