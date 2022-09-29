@@ -54,7 +54,7 @@ sssnake -m screensaver -s 15 -z -x 8 -y 8 --try-hard 1
 
 ### Definitely be added
   - ~~Pause key~~ Spacebar is now the pause key.
-  - ~~Increase and decrease speed keys~~ You can increase or decrease the speed with + and -.
+  - ~~Increase and decrease speed keys~~ You can increase or decrease the speed with + and - in autopilot/screensaver modes.
   - ~~An alternative/replacement to the A\* algorithm (probably BFS)~~ BFS is now available with: `--short-path=bfs`.
 ### May be added
   - Hamiltonian cycles.
