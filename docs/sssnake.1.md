@@ -2,8 +2,8 @@
 title: SSSNAKE
 section: 1
 header: User Manual
-footer: Ver. 0.2.0
-date: September 15, 2022
+footer: Ver. 0.3.0
+date: September 29, 2022
 ---
 # NAME
 sssnake - Classic snake game on the terminal that can run in autopilot.
@@ -12,7 +12,7 @@ sssnake - Classic snake game on the terminal that can run in autopilot.
 **sssnake** [*OPTION*]...
 
 # DESCRIPTION
-**sssnake** is the classic snake game written in c to run in the terminal capable to run in autopilot.
+**sssnake** is the classic snake game, written in c capable of running on autopilot.
 
 # OPTIONS
 **-m MODE, --mode=MODE** 
@@ -49,22 +49,53 @@ sssnake - Classic snake game on the terminal that can run in autopilot.
 **-t, --teleport** 
 : Allows the snake to teleport between borders.
 
-**--try-hard N** 
+**--try-hard=NUMBER** 
 :  Makes the snake unkillable in the autopilot/screensaver mode. For now there are two options (algorithms):
 
     * "--try-hard 1" is cpu efficient, good for big boards.
     * "--try-hard 2" uses more cpu, it reaches the food faster and produces a cleaner board.
+
+**--short-path=ALGORITHM** 
+:  Lets you set the algorithm used to find the shortest path. There is three algorithms available:
+
+    * astar: A\* using a simple heuristic, it tends to make a lot of turns (default).
+    * bfs: Breadth-first search, it produces straight paths.
+    * asfixed: A\* with a heuristic that puts extra cost to turns, the paths produced are a middle ground between the other two algorithms.
 
 **-h, --help** 
 : Print help message..
 
 # CONTROLS
 
+## NORMAL/ARCADE:
+
 **wasd, hjkl, up down left right**
 : Basic directional controls.
 
+**spacebar**
+: Pause game.
+
 **q**
-: Quit game (in autopilot any key quits the game).
+: Quit game.
+
+## AUTOPILOT/SCREENSAVER:
+
+**+**
+: Increases the speed of the game.
+
+**-**
+: Decreases the speed of the game.
+
+**spacebar**
+: Pause game.
+
+**q**
+: Quit game.
+
+## SCREENSAVER:
+
+**Any key except +,- and spacebar**
+: Quit game.
 
 # AUTHORS
 Written by Angel Jumbo(anarjumb@protonmail.com).

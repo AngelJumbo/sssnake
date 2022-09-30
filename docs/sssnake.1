@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "SSSNAKE" "1" "September 15, 2022" "Ver. 0.2.0" "User Manual"
+.TH "SSSNAKE" "1" "September 29, 2022" "Ver. 0.3.0" "User Manual"
 .hy
 .SH NAME
 .PP
@@ -24,8 +24,8 @@ sssnake - Classic snake game on the terminal that can run in autopilot.
 \f[B]sssnake\f[R] [\f[I]OPTION\f[R]]\&...
 .SH DESCRIPTION
 .PP
-\f[B]sssnake\f[R] is the classic snake game written in c to run in the
-terminal capable to run in autopilot.
+\f[B]sssnake\f[R] is the classic snake game, written in c capable of
+running on autopilot.
 .SH OPTIONS
 .TP
 \f[B]-m MODE, \[en]mode=MODE\f[R]
@@ -33,9 +33,10 @@ Mode in which the program will run.
 MODE can be:
 .RS
 .IP \[bu] 2
-normal (Default mode)
+normal (Default mode where you control the snake)
 .IP \[bu] 2
-arcade (A board with dimensions and speed increase when the snake eats )
+arcade (A board with specific dimensions and the speed increases when
+the snake eats )
 .IP \[bu] 2
 autopilot (The game plays itself)
 .IP \[bu] 2
@@ -63,9 +64,11 @@ Speed of the game, from 1 to 20.
 .TP
 \f[B]-x DIMENSION, \[en]maxX=DIMENSION\f[R]
 Define the width of the board (minimum value of DIMENSION is 5).
+A single unit is equal to two terminal columns.
 .TP
 \f[B]-y DIMENSION, \[en]maxY=DIMENSION\f[R]
 Define the height of the board (minimum value of DIMENSION is 5).
+A single unit is equal to one terminal row.
 .TP
 \f[B]-j NUMBER, \[en]junk=NUMBER\f[R]
 Add random blocks of junk, levels from 1 to 10.
@@ -77,8 +80,8 @@ Shows the size of the snake at any time.
 \f[B]-t, \[en]teleport\f[R]
 Allows the snake to teleport between borders.
 .TP
-\f[B]\[en]try-hard N\f[R]
-Makes the snake (almost) unkillable in the autopilot/screensaver mode.
+\f[B]\[en]try-hard=NUMBER\f[R]
+Makes the snake unkillable in the autopilot/screensaver mode.
 For now there are two options (algorithms):
 .RS
 .IP \[bu] 2
@@ -88,15 +91,50 @@ For now there are two options (algorithms):
 produces a cleaner board.
 .RE
 .TP
+\f[B]\[en]short-path=ALGORITHM\f[R]
+Lets you set the algorithm used to find the shortest path.
+There is three algorithms available:
+.RS
+.IP \[bu] 2
+astar: A* using a simple heuristic, it tends to make a lot of turns
+(default).
+.IP \[bu] 2
+bfs: Breadth-first search, it produces straight paths.
+.IP \[bu] 2
+asfixed: A* with a heuristic that puts extra cost to turns, the paths
+produced are a middle ground between the other two algorithms.
+.RE
+.TP
 \f[B]-h, \[en]help\f[R]
 Print help message..
 .SH CONTROLS
+.SS NORMAL/ARCADE:
 .TP
 \f[B]wasd, hjkl, up down left right\f[R]
 Basic directional controls.
 .TP
+\f[B]spacebar\f[R]
+Pause game.
+.TP
 \f[B]q\f[R]
-Quit game (in autopilot any key quits the game).
+Quit game.
+.SS AUTOPILOT/SCREENSAVER:
+.TP
+\f[B]+\f[R]
+Increases the speed of the game.
+.TP
+\f[B]-\f[R]
+Decreases the speed of the game.
+.TP
+\f[B]spacebar\f[R]
+Pause game.
+.TP
+\f[B]q\f[R]
+Quit game.
+.SS SCREENSAVER:
+.TP
+\f[B]Any key except +,- and spacebar\f[R]
+Quit game.
 .SH AUTHORS
 .PP
 Written by Angel Jumbo(anarjumb\[at]protonmail.com).
