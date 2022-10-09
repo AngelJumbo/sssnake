@@ -187,7 +187,7 @@ int main(int argc, char *argv[]) {
       }
 
       if (snake->head->x == food.x && snake->head->y == food.y) {
-        if (selectedMode == ARCADE || selectedMode == SCREENSAVER) {
+        if (selectedMode == AUTOPILOT || selectedMode == SCREENSAVER) {
           stack_free(path);
           path = NULL;
         }
