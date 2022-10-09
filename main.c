@@ -187,8 +187,10 @@ int main(int argc, char *argv[]) {
       }
 
       if (snake->head->x == food.x && snake->head->y == food.y) {
-        stack_free(path);
-        path = NULL;
+        if (selectedMode == ARCADE || selectedMode == SCREENSAVER) {
+          stack_free(path);
+          path = NULL;
+        }
         if (junkCount + snake->length < maxBlocks) {
           controlLastPoint = food;
           controlSnakeSize = snake->length;
