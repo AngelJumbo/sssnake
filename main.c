@@ -10,6 +10,7 @@
 #include "draw.h"
 #include "snake.h"
 #include "structs.h"
+#include "termbox.h"
 #include "xymap.h"
 
 enum modes { NORMAL, ARCADE, AUTOPILOT, SCREENSAVER };
@@ -42,6 +43,7 @@ int main(int argc, char *argv[]) {
   List *junkList = NULL;
   Point food = {-1, -1};
 
+  struct tb_event event = {0};
   // Control variables for the screensaver mode
 
   Point controlLastPoint = {-1, -1};
@@ -127,18 +129,21 @@ int main(int argc, char *argv[]) {
         }
       }
 
-      timeout(0);
-      c = getch();
+      tb_peek_event(&event, 10);
+      c = event.ch;
 
       // Pause game
       if (c == ' ') {
         do {
-          nodelay(stdscr, false);
-          c = getch();
+          // nodelay(stdscr, false);
+          tb_peek_event(&event, 10);
+          c = event.ch;
+
         } while (c != ' ');
 
-        nodelay(stdscr, true);
-        c = getch();
+        tb_peek_event(&event, 10);
+        c = event.ch;
+
       } else if (selectedMode == SCREENSAVER || selectedMode == AUTOPILOT) {
         // control speed
         switch (c) {
@@ -146,13 +151,13 @@ int main(int argc, char *argv[]) {
         case '=':
           if (speed - 10000 > 0)
             speed -= 10000;
-          c = ERR;
+          c = 0;
           break;
         case '-':
         case '_':
           if (speed + 10000 <= 200000)
             speed += 10000;
-          c = ERR;
+          c = 0;
           break;
         }
       }
@@ -208,7 +213,7 @@ int main(int argc, char *argv[]) {
       if (snake->collision || c == 'q') {
         break;
       }
-      if (selectedMode == SCREENSAVER && c != ERR) {
+      if (selectedMode == SCREENSAVER && c != 0) {
         c = 'q';
         break;
       }
@@ -217,12 +222,12 @@ int main(int argc, char *argv[]) {
       if (score)
         draw_score(snake);
       c = 0;
-      refresh();
+      tb_present();
       usleep(speed);
     }
 
-    clear();
-    refresh();
+    tb_clear();
+    tb_present();
     if (junk)
       list_free(junkList);
     snake_free(snake);
@@ -232,7 +237,7 @@ int main(int argc, char *argv[]) {
   } while (selectedMode == SCREENSAVER);
   if (path != NULL)
     stack_free(path);
-  endwin();
+  tb_shutdown();
 }
 
 int check_path(Stack **path) {
@@ -281,28 +286,28 @@ int check_junk_pos(XYMap *blocksTaken, int x, int y) {
 }
 int get_direction(int c) {
   switch (c) {
-  case KEY_UP:
+  // case KEY_UP:
   case 'k':
   case 'K':
   case 'w':
   case 'W':
     return North;
     break;
-  case KEY_DOWN:
+  // case KEY_DOWN:
   case 'j':
   case 'J':
   case 's':
   case 'S':
     return South;
     break;
-  case KEY_LEFT:
+  // case KEY_LEFT:
   case 'a':
   case 'A':
   case 'h':
   case 'H':
     return West;
     break;
-  case KEY_RIGHT:
+  // case KEY_RIGHT:
   case 'd':
   case 'D':
   case 'l':

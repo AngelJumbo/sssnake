@@ -2,10 +2,10 @@ PREFIX = /usr/local
 MANDIR = $(PREFIX)/share/man
 
 sssnake: main.c autopilot.c xymap.c structs.c snake.c draw.c 
-	$(CC) -w $(ncursesw5-config --cflags --libs) main.c autopilot.c xymap.c structs.c snake.c draw.c -lncursesw -o sssnake
+	$(CC) main.c autopilot.c xymap.c structs.c snake.c draw.c -o sssnake
 
 debug: main.c autopilot.c xymap.c structs.c snake.c draw.c 
-	$(CC) -w $(ncursesw5-config --cflags --libs) -Wall -g main.c autopilot.c xymap.c structs.c snake.c draw.c -lncursesw -o sssnake
+	$(CC) -Wall -g main.c autopilot.c xymap.c structs.c snake.c draw.c -o sssnake
 
 
 .PHONY: genman
