@@ -92,3 +92,16 @@ void xymap_print_log(XYMap *map, int headx, int heady, int tailx, int taily) {
   fprintf(fp, "\n");
   fclose(fp);
 }
+
+int xymap_count_unmarked(XYMap *map){
+  
+  int count = 0;
+  for (int j = 0; j < map->maxY; j++) {
+    for (int i = 0; i < map->maxX; i++) {
+      if (map->arr[i + map->maxX * j] == 0) {
+        count++;
+      } 
+    }
+  }
+  return count;
+}

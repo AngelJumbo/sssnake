@@ -4,6 +4,7 @@ Node *node_create(void *data) {
   Node *tmp = (Node *)malloc(sizeof(Node));
   tmp->data = data;
   tmp->next = NULL;
+  tmp->prev = NULL;
   return tmp;
 }
 
@@ -22,6 +23,7 @@ void list_append(List *list, void *data) {
     list->first = list->last;
   } else {
     list->last->next = node_create(data);
+    list->last->next->prev = list->last;
     list->last = list->last->next;
   }
   list->count++;
@@ -32,11 +34,25 @@ void *list_get_first(List *list) {
     Node *next = list->first->next;
     free(list->first);
     list->first = next;
+    list->first->prev = NULL;
     list->count--;
     return data;
   }
   return NULL;
 }
+void *list_get_last(List *list) {
+  if (list->count > 0) {
+    void *data = list->last->data;
+    Node *last = list->last->prev;
+    free(list->last);
+    list->last = last;
+    list->last->next = NULL;
+    list->count--;
+    return data;
+  }
+  return NULL;
+}
+
 
 void list_free(List *list) {
   Node *node = list->first;

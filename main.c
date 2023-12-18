@@ -27,6 +27,7 @@ static int speed = 200000;
 static int junk = 0;
 static short score = 0;
 static short teleport = 0;
+static short hamiltonian = 0;
 
 void init_options(int argc, char *argv[]);
 int get_direction(int c);
@@ -39,6 +40,7 @@ int main(int argc, char *argv[]) {
   XYMap *blocksTaken = NULL;
   Snake *snake = NULL;
   Stack *path = NULL;
+  List *h_path = NULL;
   List *junkList = NULL;
   Point food = {-1, -1};
 
@@ -92,14 +94,48 @@ int main(int argc, char *argv[]) {
       draw_junk(junkList);
       junkCount = junkList->count;
     }
+      junkList = list_create();
+      list_append(junkList, point_create(1, 1));
+      list_append(junkList, point_create(2, 1));
+      list_append(junkList, point_create(6, 1));
+      list_append(junkList, point_create(5, 1));
+      // list_append(junkList, point_create(1, 8));
+      // list_append(junkList, point_create(2, 8));
+      // list_append(junkList, point_create(6, 8));
+      // list_append(junkList, point_create(5, 8));
+      xymap_mark(blocksTaken, 1, 1, WALL);
+      xymap_mark(blocksTaken, 2, 1, WALL);
+      xymap_mark(blocksTaken, 6, 1, WALL);
+      xymap_mark(blocksTaken, 5, 1, WALL);
+      // xymap_mark(blocksTaken, 1, 8, WALL);
+      // xymap_mark(blocksTaken, 2, 8, WALL);
+      // xymap_mark(blocksTaken, 6, 8, WALL);
+      // xymap_mark(blocksTaken, 5, 8, WALL);
+      draw_junk(junkList);
 
     rand_pos_food(&food, blocksTaken, maxX, maxY);
+
+    if(hamiltonian){
+      //printf("test\n");
+      Point initial_p = {snake->head->x, snake->head->y};
+      h_path = hamiltonian_path(blocksTaken, initial_p );
+
+      if(h_path ==NULL){
+
+        printf("No hamiltonian path found\n");
+        c='q';
+        goto END;
+      }
+
+      free(list_get_first(h_path));
+
+    }
 
     // The game loop
     while (1) {
       // Get a new path to follow if the autopilot or the screensaver are active
       if ((selectedMode == AUTOPILOT || selectedMode == SCREENSAVER) &&
-          !check_path(&path)) {
+          !check_path(&path) && !hamiltonian) {
 
         switch (selectedAlgorithm) {
         case BASIC:
@@ -163,6 +199,12 @@ int main(int argc, char *argv[]) {
         update_position_autopilot(snake, blocksTaken, &food, point->x, point->y,
                                   maxX, maxY);
         free(point);
+      } else if(h_path){
+
+        Point *point = list_get_first(h_path);
+        update_position_autopilot(snake, blocksTaken, &food, point->x, point->y,
+                                  maxX, maxY);
+        list_append(h_path, point);
       } else {
         // If the autopilot is on and there is no path to follow then let the
         // snake die.
@@ -220,6 +262,7 @@ int main(int argc, char *argv[]) {
       refresh();
       usleep(speed);
     }
+  END:
 
     clear();
     refresh();
@@ -335,6 +378,7 @@ void init_options(int argc, char *argv[]) {
                                         {"maxY", 1, NULL, 'y'},
                                         {"try-hard", 1, NULL, 1},
                                         {"short-path", 1, NULL, 2},
+                                        {"hamiltonian", 0, NULL, 3},
 
                                         // {"try-hard", 0, NULL, 0},
                                         {NULL, 0, NULL, 0}};
@@ -456,6 +500,9 @@ void init_options(int argc, char *argv[]) {
         exit(0);
       }
 
+      break;
+    case 3:
+      hamiltonian = 1;
       break;
 
     case 'h':

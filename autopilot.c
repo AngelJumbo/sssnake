@@ -893,3 +893,129 @@ Stack *basic_path_search(XYMap *map, Snake *snake, int maxX, int maxY,
                          Point dest) {
   return short_path(map, snake, maxX, maxY, dest, 1);
 }
+
+
+/*
+ def dfs_helper(x, y):
+        if not is_valid(x, y):
+            return False
+
+        path.append((x, y))
+        visited[x][y] = True
+
+        if grid[x][y] == 'X':
+            return False  # Hit an obstacle
+
+        # Explore in all four directions
+        for dx, dy in directions:
+            new_x, new_y = x + dx, y + dy
+            if dfs_helper(new_x, new_y):
+                return True
+
+        # If no path found, backtrack
+        path.pop()
+        return False
+
+ */
+/*
+short dfs(XYMap *map,List *path, Point p, Point end_point, int path_len, int path_len_goal){
+
+  if(path_len == path_len_goal+1 && p.x == end_point.x && p.y == end_point.y){
+    list_append(path, point_create(p.x, p.y) );
+    return 1;
+  }
+  if( !is_valid(p.x,p.y, map->maxX,map->maxY) )
+    return 0;
+  if ( xymap_marked(map,p.x,p.y) )
+    return 0;
+  list_append(path, point_create(p.x, p.y) );
+  xymap_mark(map, p.x, p.y,SBODY);
+  //xymap_print(map);
+  xymap_print_log(map, p.x, p.y, end_point.x, end_point.y);
+
+
+  Point new_points[]={
+    {p.x-1, p.y},
+    {p.x+1, p.y},
+    {p.x, p.y-1},
+    {p.x, p.y+1}
+  };
+  
+  for(int i=0;i<4;i++){
+    if( dfs(map,path,new_points[i], end_point, path_len+1, path_len_goal))
+      return 1;
+
+  }
+  xymap_unmark(map, p.x, p.y);
+  free(list_get_last(path)); 
+  
+
+  return 0;
+}
+
+List *hamiltonian_path(XYMap *map, Point initial_point){
+  XYMap *map_copy = xymap_copy(map);
+  xymap_unmark(map_copy, initial_point.x, initial_point.y);
+  int path_len_goal = xymap_count_unmarked(map_copy);
+  List *path = list_create();
+  if(dfs(map_copy, path, initial_point, initial_point, 1, path_len_goal))
+    return path;
+  
+  list_free(path);
+  xymap_free(map_copy);
+  return NULL;
+   
+}*/
+
+int dfs(XYMap *map, List *path, Point p, Point end_point, int path_len_goal) {
+    if (path_len_goal == 0 && p.x == end_point.x && p.y == end_point.y) {
+        list_append(path, point_create(p.x, p.y));
+        return 1;
+    }
+
+    if (!is_valid(p.x, p.y, map->maxX, map->maxY) || xymap_marked(map, p.x, p.y))
+        return 0;
+
+    list_append(path, point_create(p.x, p.y));
+    xymap_mark(map, p.x, p.y, SBODY);
+
+    int directions[][2] = { {-1, 0}, {1, 0}, {0, -1}, {0, 1} };
+
+    for (int i = 0; i < 4; i++) {
+        int new_x = p.x + directions[i][0];
+        int new_y = p.y + directions[i][1];
+        if (dfs(map, path, (Point){new_x, new_y}, end_point, path_len_goal - 1))
+            return 1;
+    }
+
+    xymap_unmark(map, p.x, p.y);
+    free(list_get_last(path)); 
+
+    return 0;
+}
+/*
+List *hamiltonian_path(XYMap *map, Point initial_point) {
+    int path_len_goal = xymap_count_unmarked(map);
+    List *path = list_create();
+
+    if (dfs(map, path, initial_point, initial_point, path_len_goal))
+        return path;
+
+    list_free(path);
+    return NULL;
+}*/
+List *hamiltonian_path(XYMap *map, Point initial_point){
+  XYMap *map_copy = xymap_copy(map);
+  xymap_unmark(map_copy, initial_point.x, initial_point.y);
+  int path_len_goal = xymap_count_unmarked(map_copy);
+  List *path = list_create();
+  if(dfs(map_copy, path, initial_point, initial_point, path_len_goal))
+    return path;
+  
+  list_free(path);
+  xymap_free(map_copy);
+  return NULL;
+   
+}
+
+

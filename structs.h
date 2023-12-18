@@ -8,6 +8,7 @@
 typedef struct node {
   void *data;
   struct node *next;
+  struct node *prev;
 } Node;
 
 typedef struct list {
@@ -52,6 +53,7 @@ List *list_create();
 
 void list_append(List *list, void *data);
 void *list_get_first(List *list);
+void *list_get_last(List *list);
 void list_free(List *list);
 
 HeapEntry *heap_entry_create(unsigned int value, void *data);
