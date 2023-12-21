@@ -70,6 +70,7 @@ int main(int argc, char *argv[]) {
     //  dimensions of the terminal.
     blocksTaken = xymap_create(maxX, maxY);
     snake = snake_create(maxX / 2, maxY / 2, direction, teleport);
+    // snake = snake_create(0, 0, direction, teleport);
     xymap_mark(blocksTaken, snake->head->x, snake->head->y, SBODY);
     // A snake with a size of just one cell may break somethings
     // so just grow it by one at the start.
@@ -95,22 +96,52 @@ int main(int argc, char *argv[]) {
       junkCount = junkList->count;
     }
       junkList = list_create();
-      list_append(junkList, point_create(1, 1));
-      list_append(junkList, point_create(2, 1));
-      list_append(junkList, point_create(6, 1));
-      list_append(junkList, point_create(5, 1));
-      // list_append(junkList, point_create(1, 8));
-      // list_append(junkList, point_create(2, 8));
-      // list_append(junkList, point_create(6, 8));
-      // list_append(junkList, point_create(5, 8));
-      xymap_mark(blocksTaken, 1, 1, WALL);
-      xymap_mark(blocksTaken, 2, 1, WALL);
-      xymap_mark(blocksTaken, 6, 1, WALL);
-      xymap_mark(blocksTaken, 5, 1, WALL);
-      // xymap_mark(blocksTaken, 1, 8, WALL);
-      // xymap_mark(blocksTaken, 2, 8, WALL);
-      // xymap_mark(blocksTaken, 6, 8, WALL);
-      // xymap_mark(blocksTaken, 5, 8, WALL);
+      // list_append(junkList, point_create( 1,1));
+      // list_append(junkList, point_create( 1,2));
+      // list_append(junkList, point_create( 1,3));
+      // list_append(junkList, point_create( 1,4));
+      // list_append(junkList, point_create( 1,7));
+      // list_append(junkList, point_create( 1,8));
+
+      // list_append(junkList, point_create( 8,1));
+      // list_append(junkList, point_create( 8,2));
+      // list_append(junkList, point_create( 8,7));
+      // list_append(junkList, point_create( 8,8));
+      // xymap_mark(blocksTaken, 1,1, WALL);
+      // xymap_mark(blocksTaken, 1,2, WALL);
+      // xymap_mark(blocksTaken, 1,3, WALL);
+      // xymap_mark(blocksTaken, 1,4, WALL);
+      // xymap_mark(blocksTaken, 1,7, WALL);
+      // xymap_mark(blocksTaken, 1,8, WALL);
+
+      // xymap_mark(blocksTaken, 8,1, WALL);
+      // xymap_mark(blocksTaken, 8,2, WALL);
+      // xymap_mark(blocksTaken, 8,7, WALL);
+      // xymap_mark(blocksTaken, 8,8, WALL);
+
+
+      list_append(junkList, point_create( 1,1));
+      list_append(junkList, point_create( 2,1));
+      list_append(junkList, point_create( 3,1));
+      list_append(junkList, point_create( 4,1));
+      list_append(junkList, point_create( 7,1));
+      list_append(junkList, point_create( 8,1));
+
+      list_append(junkList, point_create( 1,8));
+      list_append(junkList, point_create( 2,8));
+      list_append(junkList, point_create( 7,8));
+      list_append(junkList, point_create( 8,8));
+      xymap_mark(blocksTaken, 1,1, WALL);
+      xymap_mark(blocksTaken, 2,1, WALL);
+      xymap_mark(blocksTaken, 3,1, WALL);
+      xymap_mark(blocksTaken, 4,1, WALL);
+      xymap_mark(blocksTaken, 7,1, WALL);
+      xymap_mark(blocksTaken, 8,1, WALL);
+
+      xymap_mark(blocksTaken, 1,8, WALL);
+      xymap_mark(blocksTaken, 2,8, WALL);
+      xymap_mark(blocksTaken, 7,8, WALL);
+      xymap_mark(blocksTaken, 8,8, WALL);
       draw_junk(junkList);
 
     rand_pos_food(&food, blocksTaken, maxX, maxY);
@@ -118,7 +149,7 @@ int main(int argc, char *argv[]) {
     if(hamiltonian){
       //printf("test\n");
       Point initial_p = {snake->head->x, snake->head->y};
-      h_path = hamiltonian_path(blocksTaken, initial_p );
+      h_path = hamiltonian_path(blocksTaken,snake, initial_p );
 
       if(h_path ==NULL){
 

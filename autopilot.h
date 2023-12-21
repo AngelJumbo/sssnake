@@ -47,6 +47,6 @@ Stack *breadth_first_search(XYMap *map, Snake *snake, int maxX, int maxY,
 Stack *basic_path_search(XYMap *map, Snake *snake, int maxX, int maxY,
                          Point dest);
 
-List *hamiltonian_path(XYMap *map, Point initial_point);
+List *hamiltonian_path(XYMap *map, Snake *snake, Point initial_point);
 
 #endif // !AUTOPILOT_H

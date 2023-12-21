@@ -967,24 +967,35 @@ List *hamiltonian_path(XYMap *map, Point initial_point){
    
 }*/
 
-int dfs(XYMap *map, List *path, Point p, Point end_point, int path_len_goal) {
+int dfs(XYMap *map, Snake *snake, List *path, Point p, Point end_point, int path_len_goal) {
     if (path_len_goal == 0 && p.x == end_point.x && p.y == end_point.y) {
         list_append(path, point_create(p.x, p.y));
         return 1;
     }
 
-    if (!is_valid(p.x, p.y, map->maxX, map->maxY) || xymap_marked(map, p.x, p.y))
+  Stack *shortPath = basic_path_search(map, snake, map->maxX, map->maxY, end_point);
+
+    if (!is_valid(p.x, p.y, map->maxX, map->maxY) || xymap_marked(map, p.x, p.y) || short_path==NULL )
         return 0;
+    else
+        stack_free(shortPath);
 
     list_append(path, point_create(p.x, p.y));
     xymap_mark(map, p.x, p.y, SBODY);
 
-    int directions[][2] = { {-1, 0}, {1, 0}, {0, -1}, {0, 1} };
+    if(path_len_goal<=2)
+      xymap_print_log(map, p.x, p.y, end_point.x, end_point.y);
+
+    // static int directions[][2] = { {1, 0}, {-1, 0}, {0, -1}, {0, 1} };
+    // static int directions[][2] = { {-1, 0},{1, 0}, {0, -1}, {0, 1} };
+    // static int directions[][2] = { {1, 0}, {-1, 0}, {0, 1}, {0, -1} };
+    // static int directions[][2] = { {-1, 0},{1, 0}, {0, 1}, {0, -1} };
+    static int directions[][2] = {   {0, 1}, {0, -1}, {1, 0}, {-1, 0} };
 
     for (int i = 0; i < 4; i++) {
         int new_x = p.x + directions[i][0];
         int new_y = p.y + directions[i][1];
-        if (dfs(map, path, (Point){new_x, new_y}, end_point, path_len_goal - 1))
+        if (dfs(map,snake, path, (Point){new_x, new_y}, end_point, path_len_goal - 1))
             return 1;
     }
 
@@ -1004,12 +1015,12 @@ List *hamiltonian_path(XYMap *map, Point initial_point) {
     list_free(path);
     return NULL;
 }*/
-List *hamiltonian_path(XYMap *map, Point initial_point){
+List *hamiltonian_path(XYMap *map, Snake *snake, Point initial_point){
   XYMap *map_copy = xymap_copy(map);
   xymap_unmark(map_copy, initial_point.x, initial_point.y);
   int path_len_goal = xymap_count_unmarked(map_copy);
   List *path = list_create();
-  if(dfs(map_copy, path, initial_point, initial_point, path_len_goal))
+  if(dfs(map_copy, snake, path, initial_point, initial_point, path_len_goal))
     return path;
   
   list_free(path);
