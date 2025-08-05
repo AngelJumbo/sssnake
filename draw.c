@@ -1,5 +1,6 @@
-
+#define _XOPEN_SOURCE_EXTENDED 1
 #include "draw.h"
+#include <ncurses.h>
 
 static int selectedStyle = FANCY;
 
