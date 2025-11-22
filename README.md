@@ -11,6 +11,7 @@ yum install ncurses-devel        #RHEL/CentOS/Fedora and Rocky Linux/AlmaLinux
 pacman -S ncurses                #Arch Linux
 zypper install ncurses-devel     #OpenSUSE 
 xbps-install -S ncurses-devel    #Void linux
+brew install ncurses             #MacOS
 ```
 
 With that you can just do:
@@ -20,7 +21,7 @@ With that you can just do:
 git clone https://github.com/AngelJumbo/sssnake.git
 cd sssnake
 make
-make install
+sudo make install
 ```
 
 
