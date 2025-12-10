@@ -3,7 +3,8 @@
 
 #include "snake.h"
 #include "structs.h"
-#include <curses.h>
+#define _XOPEN_SOURCE_EXTENDED 1
+#include <ncursesw/curses.h>
 #include <locale.h>
 #include <wchar.h>
 
