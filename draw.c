@@ -1,18 +1,15 @@
 
+#define TB_IMPL
 #include "draw.h"
+#include <stdio.h>
 
 static int selectedStyle = FANCY;
 
-static short foodColor = COLOR_GREEN;
-static short snakeColor = -1;
-static short snakeHeadColor = COLOR_YELLOW;
-static short junkColor = COLOR_RED;
-static short wallColor = -1;
 static short drawWalls = 0;
 static short drawScore = 0;
 static Point tailLastPoint = {-1, -1};
 static Point foodLastPoint = {-1, -1};
-static int minX_, minY_, maxX_, maxY_, rows, cols;
+static int minX_, minY_, maxX_, maxY_;
 static int snakeSize = 0;
 
 int init_scr(int selStyle, int *maxX, int *maxY, short arcadeMode,
@@ -25,15 +22,14 @@ int init_scr(int selStyle, int *maxX, int *maxY, short arcadeMode,
   minX_ = 0;
   minY_ = 0;
 
-  setlocale(LC_ALL, "");
-  // cbreak();
-  initscr();
-  if (has_colors() == FALSE) {
-    endwin();
-    printf("Your terminal does not support color\n");
+  if (tb_init() != TB_OK) {
+    printf("Failed to initialize termbox\n");
     return 0;
   }
-  getmaxyx(stdscr, rows, cols);
+
+  int cols = tb_width();
+  int rows = tb_height();
+
   if (maxX_ || maxY_)
     drawWalls = 1;
   // The width of the game board is half of the columns because I use two
@@ -46,39 +42,26 @@ int init_scr(int selStyle, int *maxX, int *maxY, short arcadeMode,
     maxY_ = rows - drawScore * 2;
   else
     minY_ = (rows - maxY_) / 2;
-  // maxX = 10;
-  // maxY = 10;
-  if (arcadeMode) {
 
+  if (arcadeMode) {
     minX_ = (cols - 60) / 2;
     minY_ = (rows - 24) / 2;
     maxX_ = 30;
     maxY_ = 22;
     drawScore = 1;
     drawWalls = 1;
-  } // else if (selectedMode == SCREENSAVER || selectedMode == AUTOPILOT)
-  // teleport = 0;
+  }
 
   if (cols < maxX_ * 2 || rows < maxY_) {
-
-    endwin();
+    tb_shutdown();
     if (arcadeMode)
-      printf("The arcade mode requires a minimum of 64 colums by 22 rows\n");
+      printf("The arcade mode requires a minimum of 64 columns by 22 rows\n");
     else
-      printf("Terminal is too small for the inputed dimensions");
+      printf("Terminal is too small for the inputted dimensions\n");
     return 0;
   }
 
-  noecho();
-  keypad(stdscr, TRUE);
-  start_color();
-  use_default_colors();
-  init_pair(1, snakeColor, -1);
-  init_pair(2, foodColor, -1);
-  init_pair(3, junkColor, -1);
-  init_pair(4, wallColor, -1);
-  init_pair(5, snakeHeadColor, -1);
-  curs_set(0);
+  tb_hide_cursor();
 
   *maxX = maxX_;
   *maxY = maxY_;
@@ -280,91 +263,58 @@ void draw_junk(List *junkList) {
 void draw_point(int x, int y, short color, int type) {
   int ty = y + minY_;
   int tx = 2 * x + minX_;
-  if (tx > cols || tx < 0 || ty > rows || ty < 0)
+  if (tx >= tb_width() || tx < 0 || ty >= tb_height() || ty < 0)
     return;
-  move(ty, tx);
-  attron(COLOR_PAIR(color));
-  switch (type) {
-  case 0:
-    addwstr(L"██");
-    break;
-  case 1:
-    addwstr(L"▀ ");
-    break;
-  case 2:
-    addwstr(L"▀▀");
-    break;
-  case 3:
-    addwstr(L"█ ");
-    break;
-  case 4:
-    addwstr(L"█▀");
-    break;
-  case 5:
-    addwstr(L"▄▄");
-    break;
-  case 6:
-    addwstr(L" █");
-    break;
-  case 7:
-    addstr("  ");
-    break;
-  case 8:
-    attron(A_BOLD);
-    addstr("o ");
-    attroff(A_BOLD);
-    break;
-  case 9:
-    attron(A_BOLD);
-    addstr("@ ");
-    attroff(A_BOLD);
-    break;
-  case 10:
-    attron(A_BOLD);
-    addstr("x ");
-    attroff(A_BOLD);
-    break;
-  case 11:
-    attron(A_BOLD);
-    addstr("8 ");
-    attroff(A_BOLD);
-    break;
-  case 12:
-    addstr("--");
-    break;
-  case 13:
-    addstr("| ");
-    break;
-  case 14:
-    addstr(" |");
-    break;
-  case 16:
-    addwstr(L"▚ ");
-    break;
-  case 17:
-    addwstr(L"▚▀");
-    break;
-  case 18:
-    attron(A_BOLD);
-    addstr(". ");
-    attroff(A_BOLD);
-    break;
+
+  uintattr_t fg;
+  switch (color) {
+  case 2:  fg = TB_GREEN;   break;
+  case 3:  fg = TB_RED;     break;
+  case 5:  fg = TB_YELLOW;  break;
+  default: fg = TB_DEFAULT; break;
   }
-  attroff(COLOR_PAIR(color));
-  // move(rows, cols);
+  uintattr_t bg = TB_DEFAULT;
+
+  uint32_t ch1, ch2;
+  int bold = 0;
+
+  switch (type) {
+  case 0:  ch1 = 0x2588; ch2 = 0x2588; break; /* ██ */
+  case 1:  ch1 = 0x2580; ch2 = ' ';    break; /* ▀  */
+  case 2:  ch1 = 0x2580; ch2 = 0x2580; break; /* ▀▀ */
+  case 3:  ch1 = 0x2588; ch2 = ' ';    break; /* █  */
+  case 4:  ch1 = 0x2588; ch2 = 0x2580; break; /* █▀ */
+  case 5:  ch1 = 0x2584; ch2 = 0x2584; break; /* ▄▄ */
+  case 6:  ch1 = ' ';    ch2 = 0x2588; break; /*  █ */
+  case 7:  ch1 = ' ';    ch2 = ' ';    break; /* erase */
+  case 8:  ch1 = 'o';    ch2 = ' ';    bold = 1; break;
+  case 9:  ch1 = '@';    ch2 = ' ';    bold = 1; break;
+  case 10: ch1 = 'x';    ch2 = ' ';    bold = 1; break;
+  case 11: ch1 = '8';    ch2 = ' ';    bold = 1; break;
+  case 12: ch1 = '-';    ch2 = '-';    break;
+  case 13: ch1 = '|';    ch2 = ' ';    break;
+  case 14: ch1 = ' ';    ch2 = '|';    break;
+  case 16: ch1 = 0x259A; ch2 = ' ';    break; /* ▚  */
+  case 17: ch1 = 0x259A; ch2 = 0x2580; break; /* ▚▀ */
+  case 18: ch1 = '.';    ch2 = ' ';    bold = 1; break;
+  default: return;
+  }
+
+  if (bold)
+    fg |= TB_BOLD;
+
+  tb_set_cell(tx, ty, ch1, fg, bg);
+  if (tx + 1 < tb_width())
+    tb_set_cell(tx + 1, ty, ch2, fg, bg);
 }
 
 void draw_score(Snake *snake) {
-
-  move(minY_ + maxY_ + 1, minX_);
-
-  // attron(COLOR_PAIR(4));
   if (snakeSize != snake->length) {
     snakeSize = snake->length;
-
-    printw("Size %i ", snake->length);
+    char buf[32];
+    snprintf(buf, sizeof(buf), "Size %i ", snake->length);
+    tb_print(minX_, minY_ + maxY_ + 1, TB_DEFAULT, TB_DEFAULT, buf);
   }
-  // attroff(COLOR_PAIR(4));
 }
 
 void draw_walls() {

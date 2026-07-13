@@ -3,19 +3,7 @@ The classic snake game for the terminal that can play itself and be used like a 
 [![asciicast](https://asciinema.org/a/477685.svg)](https://asciinema.org/a/477685)
 ## Installation
 
-You need ncurses :
-
-```
-apt install libncurses-dev       #Debian/Ubuntu/Mint
-yum install ncurses-devel        #RHEL/CentOS/Fedora and Rocky Linux/AlmaLinux
-pacman -S ncurses                #Arch Linux
-zypper install ncurses-devel     #OpenSUSE 
-xbps-install -S ncurses-devel    #Void linux
-brew install ncurses             #MacOS
-```
-
-With that you can just do:
-
+No external dependencies required. Just clone and build:
 
 ```
 git clone https://github.com/AngelJumbo/sssnake.git
@@ -79,14 +67,14 @@ sssnake -m screensaver -s 15 -z -x 8 -y 8 --try-hard 1
   ```
   sssnake -m autopilot -s 10 -x 10 -y 10 --try-hard 2
   ```
-  Neither of the two algorithms work well with junk.
+  Neither of the two algorithms works well with junk.
 
 ### Why the name "sssnake"?
-   All the snake games in the terminal that I found use ascii characters and lets be honest, they are kinda ugly. 
-   I try to do something more visually appealing, something "sexy" and it can play itself so it is "smart". 
+   All the snake games in the terminal that I found use ASCII characters and, let's be honest, they are kinda ugly. 
+   I tried to do something more visually appealing, something "sexy", and since it can play itself it is also "smart". 
    Smart and sexy snake => sssnake.
 ## A\* vs BFS
-   At first this project was just an implementation of A\* in the snake game, after finding [chuyangliu's project](https://github.com/chuyangliu/snake/) I implemented their greedy solver with my A\* instead of their BFS. Noticing that the behavior of the two implementations is different I decided to implement BFS in this project also as an alternative to A\*.
+   At first this project was just an implementation of A\* in the snake game. After finding [chuyangliu's project](https://github.com/chuyangliu/snake/) I implemented their greedy solver with my A\* instead of their BFS. Noticing that the behavior of the two implementations is different, I decided to implement BFS in this project as well as an alternative to A\*.
 You can see the result here:
 
 [![Watch the video](https://img.youtube.com/vi/I1QOw_iDIB8/hqdefault.jpg)](https://youtu.be/I1QOw_iDIB8)

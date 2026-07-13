@@ -12,6 +12,13 @@
 #include "structs.h"
 #include "xymap.h"
 
+/* Key aliases to match termbox constants */
+#define KEY_UP    TB_KEY_ARROW_UP
+#define KEY_DOWN  TB_KEY_ARROW_DOWN
+#define KEY_LEFT  TB_KEY_ARROW_LEFT
+#define KEY_RIGHT TB_KEY_ARROW_RIGHT
+#define ERR       (-1)
+
 enum modes { NORMAL, ARCADE, AUTOPILOT, SCREENSAVER };
 
 static int direction = East;
@@ -127,18 +134,26 @@ int main(int argc, char *argv[]) {
         }
       }
 
-      timeout(0);
-      c = getch();
+      {
+        struct tb_event ev;
+        int ret = tb_peek_event(&ev, 0);
+        if (ret == TB_OK && ev.type == TB_EVENT_KEY)
+          c = ev.key ? (int)ev.key : (int)ev.ch;
+        else
+          c = ERR;
+      }
 
       // Pause game
       if (c == ' ') {
         do {
-          nodelay(stdscr, false);
-          c = getch();
+          struct tb_event pause_ev;
+          tb_poll_event(&pause_ev);
+          if (pause_ev.type == TB_EVENT_KEY)
+            c = pause_ev.key ? (int)pause_ev.key : (int)pause_ev.ch;
+          else
+            c = ERR;
         } while (c != ' ');
-
-        nodelay(stdscr, true);
-        c = getch();
+        c = ERR;
       } else if (selectedMode == SCREENSAVER || selectedMode == AUTOPILOT) {
         // control speed
         switch (c) {
@@ -217,12 +232,12 @@ int main(int argc, char *argv[]) {
       if (score)
         draw_score(snake);
       c = 0;
-      refresh();
+      tb_present();
       usleep(speed);
     }
 
-    clear();
-    refresh();
+    tb_clear();
+    tb_present();
     if (junk)
       list_free(junkList);
     snake_free(snake);
@@ -232,7 +247,7 @@ int main(int argc, char *argv[]) {
   } while (selectedMode == SCREENSAVER);
   if (path != NULL)
     stack_free(path);
-  endwin();
+  tb_shutdown();
 }
 
 int check_path(Stack **path) {

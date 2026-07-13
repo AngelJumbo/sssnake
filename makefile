@@ -1,22 +1,11 @@
 PREFIX = /usr/local
 MANDIR = $(PREFIX)/share/man
-NCURSES_FLAGS = $(shell ncursesw5-config --cflags --libs 2>/dev/null)
 
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Darwin)
-    ifneq ($(wildcard /opt/homebrew/opt/ncurses),)
-        HB_PATH = /opt/homebrew/opt/ncurses
-    else
-        HB_PATH = /usr/local/opt/ncurses
-    endif
-    NCURSES_FLAGS = -I$(HB_PATH)/include -L$(HB_PATH)/lib -D_XOPEN_SOURCE_EXTENDED
-endif
+sssnake: main.c autopilot.c xymap.c structs.c snake.c draw.c
+	$(CC) -w main.c autopilot.c xymap.c structs.c snake.c draw.c -o sssnake
 
-sssnake: main.c autopilot.c xymap.c structs.c snake.c draw.c 
-	$(CC) -w $(NCURSES_FLAGS) main.c autopilot.c xymap.c structs.c snake.c draw.c -lncursesw -o sssnake
-
-debug: main.c autopilot.c xymap.c structs.c snake.c draw.c 
-	$(CC) -w $(NCURSES_FLAGS) -Wall -g main.c autopilot.c xymap.c structs.c snake.c draw.c -lncursesw -o sssnake
+debug: main.c autopilot.c xymap.c structs.c snake.c draw.c
+	$(CC) -w -Wall -g main.c autopilot.c xymap.c structs.c snake.c draw.c -o sssnake
 
 .PHONY: genman
 genman:

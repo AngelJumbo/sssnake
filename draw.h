@@ -3,10 +3,7 @@
 
 #include "snake.h"
 #include "structs.h"
-#define _XOPEN_SOURCE_EXTENDED 1
-#include <ncursesw/curses.h>
-#include <locale.h>
-#include <wchar.h>
+#include "termbox.h"
 
 enum styles { FANCY, FULL, ASCII, DOTS };
 
