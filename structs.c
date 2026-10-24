@@ -89,7 +89,6 @@ void stack_free(Stack *stack) {
 }
 Stack *stack_invert(Stack *stack) {
   Stack *tmp = stack_create();
-  tmp->count = stack->count;
   while (stack->last != NULL) {
     stack_push(tmp, stack_pop(stack));
   }
